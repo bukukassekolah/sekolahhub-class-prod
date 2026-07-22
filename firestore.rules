@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    match /TeacherProfile/{docId} {
+      allow read, write: if isSignedIn() && (request.auth.uid == docId || request.auth.uid == resource.data.userId || request.resource.data.userId == request.auth.uid);
+    }
+    
+    match /Students/{docId} {
+      allow read, create, update, delete: if isSignedIn() && (resource.data.teacherId == request.auth.uid || request.resource.data.teacherId == request.auth.uid);
+    }
+
+    match /Attendance/{docId} {
+      allow read, create, update, delete: if isSignedIn() && (resource.data.teacherId == request.auth.uid || request.resource.data.teacherId == request.auth.uid);
+    }
+
+    match /Notes/{docId} {
+      allow read, create, update, delete: if isSignedIn() && (resource.data.teacherId == request.auth.uid || request.resource.data.teacherId == request.auth.uid);
+    }
+
+    match /Announcements/{docId} {
+      allow read, create, update, delete: if isSignedIn() && (resource.data.teacherId == request.auth.uid || request.resource.data.teacherId == request.auth.uid);
+    }
+
+    match /Savings/{docId} {
+      allow read, create, update, delete: if isSignedIn() && (resource.data.teacherId == request.auth.uid || request.resource.data.teacherId == request.auth.uid);
+    }
+
+    match /Feedback/{docId} {
+      allow create: if isSignedIn();
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid);
+    }
+
+    match /ImplementationRequests/{docId} {
+      allow create: if true;
+      allow read, update, delete: if isSignedIn();
+    }
+  }
+}

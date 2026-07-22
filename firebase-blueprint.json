@@ -1,0 +1,101 @@
+{
+  "entities": {
+    "TeacherProfile": {
+      "title": "Teacher Profile",
+      "description": "Profile information for the teacher and class settings",
+      "properties": {
+        "userId": { "type": "string" },
+        "teacherName": { "type": "string" },
+        "schoolName": { "type": "string" },
+        "className": { "type": "string" },
+        "academicYear": { "type": "string" },
+        "semester": { "type": "string" },
+        "schoolLogo": { "type": "string" }
+      },
+      "required": ["userId", "teacherName", "schoolName", "className"]
+    },
+    "Students": {
+      "title": "Students",
+      "description": "Student roster in the class",
+      "properties": {
+        "teacherId": { "type": "string" },
+        "nis": { "type": "string" },
+        "name": { "type": "string" },
+        "gender": { "type": "string" },
+        "birthDate": { "type": "string" },
+        "parentName": { "type": "string" },
+        "parentWhatsapp": { "type": "string" },
+        "address": { "type": "string" },
+        "isActive": { "type": "boolean" }
+      },
+      "required": ["teacherId", "name", "isActive"]
+    },
+    "Attendance": {
+      "title": "Attendance",
+      "description": "Daily student attendance records",
+      "properties": {
+        "teacherId": { "type": "string" },
+        "date": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["teacherId", "date", "studentId", "status"]
+    },
+    "Notes": {
+      "title": "Notes",
+      "description": "Teacher daily journal and class developments",
+      "properties": {
+        "teacherId": { "type": "string" },
+        "date": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "category": { "type": "string" }
+      },
+      "required": ["teacherId", "date", "title", "content"]
+    },
+    "Announcements": {
+      "title": "Announcements",
+      "description": "Class announcements and notices",
+      "properties": {
+        "teacherId": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "date": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["teacherId", "title", "content", "date", "status"]
+    },
+    "Feedback": {
+      "title": "Feedback",
+      "description": "User feedback sent to system support",
+      "properties": {
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "type": { "type": "string" },
+        "message": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["userId", "type", "message"]
+    },
+    "ImplementationRequests": {
+      "title": "Implementation Requests",
+      "description": "School onboarding implementation requests",
+      "properties": {
+        "requestId": { "type": "string" },
+        "schoolName": { "type": "string" },
+        "contactName": { "type": "string" },
+        "email": { "type": "string" },
+        "whatsapp": { "type": "string" },
+        "city": { "type": "string" },
+        "educationLevel": { "type": "string" },
+        "teacherCount": { "type": "number" },
+        "studentCount": { "type": "number" },
+        "notes": { "type": "string" },
+        "status": { "type": "string" },
+        "submittedAt": { "type": "string" }
+      },
+      "required": ["schoolName", "contactName", "email", "whatsapp", "city", "educationLevel", "teacherCount", "studentCount", "status", "submittedAt"]
+    }
+  }
+}

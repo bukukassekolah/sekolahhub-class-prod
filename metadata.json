@@ -1,0 +1,6 @@
+{
+  "name": "SekolahHub Class Basic",
+  "description": "Aplikasi administrasi kelas berbasis web untuk satu guru mengelola satu kelas (Single Teacher Edition).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
