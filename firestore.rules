@@ -5,38 +5,65 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Default deny all unhandled paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // TeacherProfile: Teachers can read and write their own profile
     match /TeacherProfile/{docId} {
-      allow read, write: if isSignedIn() && (request.auth.uid == docId || request.auth.uid == resource.data.userId || request.resource.data.userId == request.auth.uid);
+      allow read, update, delete: if isSignedIn() && (docId == request.auth.uid || resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
     }
-    
+
+    // Students: Teachers can read and write their own student records
     match /Students/{docId} {
-      allow read, create, update, delete: if isSignedIn() && (resource.data.teacherId == request.auth.uid || request.resource.data.teacherId == request.auth.uid);
+      allow read, update, delete: if isSignedIn() && resource.data.teacherId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.teacherId == request.auth.uid;
     }
 
+    // Attendance: Teachers can read and write attendance for their class
     match /Attendance/{docId} {
-      allow read, create, update, delete: if isSignedIn() && (resource.data.teacherId == request.auth.uid || request.resource.data.teacherId == request.auth.uid);
+      allow read, update, delete: if isSignedIn() && resource.data.teacherId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.teacherId == request.auth.uid;
     }
 
+    // Notes: Teachers can manage their own journal notes
     match /Notes/{docId} {
-      allow read, create, update, delete: if isSignedIn() && (resource.data.teacherId == request.auth.uid || request.resource.data.teacherId == request.auth.uid);
+      allow read, update, delete: if isSignedIn() && resource.data.teacherId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.teacherId == request.auth.uid;
     }
 
+    // Announcements: Teachers can manage their class announcements
     match /Announcements/{docId} {
-      allow read, create, update, delete: if isSignedIn() && (resource.data.teacherId == request.auth.uid || request.resource.data.teacherId == request.auth.uid);
+      allow read, update, delete: if isSignedIn() && resource.data.teacherId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.teacherId == request.auth.uid;
     }
 
+    // Savings: Teachers can manage savings records for their class
     match /Savings/{docId} {
-      allow read, create, update, delete: if isSignedIn() && (resource.data.teacherId == request.auth.uid || request.resource.data.teacherId == request.auth.uid);
+      allow read, update, delete: if isSignedIn() && resource.data.teacherId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.teacherId == request.auth.uid;
     }
 
+    // Feedback: Authenticated users can submit feedback and read their own
     match /Feedback/{docId} {
-      allow create: if isSignedIn();
-      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid);
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
     }
 
+    // ImplementationRequests: Public submission allowed, users can check their own request status.
+    // Full developer list access is handled strictly via backend API (Firebase Admin SDK).
     match /ImplementationRequests/{docId} {
       allow create: if true;
-      allow read, update, delete: if isSignedIn();
+      allow read: if isSignedIn() && (resource.data.email != null && request.auth.token.email != null && resource.data.email.lower() == request.auth.token.email.lower());
+      allow update, delete: if false;
+    }
+
+    // ClassMetadata: Created/updated during provisioning
+    match /ClassMetadata/{docId} {
+      allow read: if isSignedIn() && (docId == request.auth.uid || resource.data.teacherUid == request.auth.uid);
+      allow write: if isSignedIn() && (docId == request.auth.uid || request.resource.data.teacherUid == request.auth.uid);
     }
   }
 }

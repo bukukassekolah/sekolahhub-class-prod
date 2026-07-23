@@ -22,100 +22,77 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose }) =
         <div className="p-6 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-semibold mb-3">
             <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span>Upgrade Path</span>
+            <span>Paket & Fitur SekolahHub</span>
           </div>
-          <h3 className="text-xl font-extrabold">SekolahHub Class Upgrade Plan</h3>
+          <h3 className="text-xl font-extrabold">SekolahHub Class Product Plans</h3>
           <p className="text-xs text-blue-100 mt-1 max-w-lg">
-            Anda saat ini menggunakan <strong>SekolahHub Class Basic (Community Edition)</strong>. Data kelas Anda aman dan dapat ditransfer saat melakukan upgrade ke edisi Pro atau Premium.
+            Anda saat ini menggunakan <strong>SekolahHub Class Basic</strong>. Aplikasi ini dirancang khusus untuk 1 guru mengelola 1 kelas secara fokus dan responsif.
           </p>
         </div>
 
         <div className="p-6 space-y-6 text-xs">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Basic */}
-            <div className="p-4 rounded-xl border-2 border-blue-500 bg-blue-50/50 space-y-3 relative">
-              <span className="absolute -top-2.5 right-3 bg-blue-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
-                Aktif
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* SekolahHub Class Basic */}
+            <div className="p-4.5 rounded-xl border-2 border-emerald-500 bg-emerald-50/40 space-y-3 relative">
+              <span className="absolute -top-2.5 right-3 bg-emerald-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
+                Aktif (Gratis)
               </span>
-              <h4 className="font-bold text-slate-900 text-sm">Class Basic</h4>
-              <p className="text-xl font-black text-blue-700">Gratis</p>
-              <ul className="space-y-2 text-slate-600">
+              <h4 className="font-extrabold text-slate-900 text-sm">SekolahHub Class Basic</h4>
+              <p className="text-xs font-bold text-emerald-700">1 Guru / 1 Kelas (Versi Standar)</p>
+              <ul className="space-y-2 text-slate-600 pt-1">
                 <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
-                  <span>1 Guru / 1 Kelas</span>
+                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Presensi & Roster Data Siswa</span>
                 </li>
                 <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
-                  <span>Presensi & Data Siswa</span>
+                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Buku Catatan Guru & Pengumuman</span>
                 </li>
                 <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
-                  <span>Catatan & Pengumuman</span>
+                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Tabungan Siswa & Export PDF Rekap</span>
                 </li>
                 <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
-                  <span>Export PDF Rekap</span>
+                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Aksa AI Asisten Kelas Dasar</span>
                 </li>
               </ul>
             </div>
 
-            {/* Pro */}
-            <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-3 hover:border-blue-300 transition-all">
-              <h4 className="font-bold text-slate-900 text-sm">Class Pro</h4>
-              <p className="text-xl font-black text-slate-900">Multi-Kelas</p>
-              <ul className="space-y-2 text-slate-600">
+            {/* SekolahHub Class Pro */}
+            <div className="p-4.5 rounded-xl border border-blue-200 bg-white space-y-3 hover:border-blue-400 transition-all shadow-xs">
+              <h4 className="font-extrabold text-slate-900 text-sm">SekolahHub Class Pro</h4>
+              <p className="text-xs font-bold text-blue-700">1 Guru / 1 Kelas (Fitur Lanjutan)</p>
+              <ul className="space-y-2 text-slate-600 pt-1">
                 <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                  <span>Semua Fitur Basic</span>
+                  <Check className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+                  <span>Semua Fitur Class Basic</span>
                 </li>
                 <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                  <span>Kelola Banyak Kelas</span>
+                  <Check className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+                  <span>Analisis Grafik Kehadiran & AI Mendalam</span>
                 </li>
                 <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                  <span>Auto Kirim WA Orang Tua</span>
+                  <Check className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+                  <span>Notifikasi WhatsApp Otomatis Orang Tua</span>
                 </li>
                 <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                  <span>Rekap Grafik Otomatis</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Premium */}
-            <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-3 hover:border-blue-300 transition-all">
-              <h4 className="font-bold text-slate-900 text-sm">Class Premium</h4>
-              <p className="text-xl font-black text-slate-900">Multi-Sekolah</p>
-              <ul className="space-y-2 text-slate-600">
-                <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" />
-                  <span>Portal Admin Sekolah</span>
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" />
-                  <span>Rapor Digital & Kurikulum</span>
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" />
-                  <span>Sinkronisasi Antar Guru</span>
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-purple-600 shrink-0 mt-0.5" />
-                  <span>Domain Khusus Sekolah</span>
+                  <Check className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+                  <span>Prioritas Dukungan Teknis Administrator</span>
                 </li>
               </ul>
             </div>
           </div>
 
-          <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-start gap-3">
-            <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-bold text-emerald-900 text-xs">Jaminan Tanpa Kehilangan Data</p>
-              <p className="text-[11px] text-emerald-700 mt-0.5">
-                Filosofi SekolahHub menjamin bahwa guru dapat meningkatkan edisi aplikasi kapan saja tanpa perlu mengubah alur kerja atau kehilangan satu pun data siswa & presensi.
-              </p>
+          {/* Product Scope Clarification Banner */}
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-indigo-600 shrink-0" />
+              <p className="font-extrabold text-slate-900 text-xs">Arsitektur Produk SekolahHub</p>
             </div>
+            <p className="text-[11px] text-slate-600 leading-relaxed">
+              <strong>SekolahHub Class</strong> (Basic & Pro) difokuskan khusus untuk pengelolaan 1 kelas oleh 1 guru secara mandiri. Apabila sekolah Anda memerlukan manajemen multi-guru, multi-kelas, portal admin sekolah, dan sinkronisasi kurikulum tingkat sekolah, silakan gunakan produk terpisah: <strong>SekolahHub Space</strong>.
+            </p>
           </div>
         </div>
 

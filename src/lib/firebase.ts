@@ -21,7 +21,8 @@ import {
   query, 
   where, 
   orderBy,
-  serverTimestamp 
+  serverTimestamp,
+  getDocFromServer 
 } from 'firebase/firestore';
 import firebaseConfigJson from '../../firebase-applet-config.json';
 import { 
@@ -32,7 +33,8 @@ import {
   Announcement,
   AnnouncementStatus, 
   FeedbackMessage,
-  SavingsTransaction
+  SavingsTransaction,
+  ImplementationRequest
 } from '../types';
 
 const firebaseConfig = {
@@ -51,6 +53,64 @@ export const auth = getAuth(app);
 export const db = firebaseConfigJson.firestoreDatabaseId 
   ? getFirestore(app, firebaseConfigJson.firestoreDatabaseId)
   : getFirestore(app);
+
+export enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+export interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+    emailVerified?: boolean | null;
+    isAnonymous?: boolean | null;
+    tenantId?: string | null;
+    providerInfo?: {
+      providerId?: string | null;
+      email?: string | null;
+    }[];
+  };
+}
+
+export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo: auth.currentUser?.providerData?.map(provider => ({
+        providerId: provider.providerId,
+        email: provider.email,
+      })) || []
+    },
+    operationType,
+    path
+  };
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  return new Error(JSON.stringify(errInfo));
+}
+
+async function testConnection() {
+  try {
+    await getDocFromServer(doc(db, 'test', 'connection'));
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('the client is offline')) {
+      console.error('Please check your Firebase configuration.');
+    }
+  }
+}
+testConnection();
 
 export { 
   signInWithEmailAndPassword, 
@@ -500,21 +560,86 @@ export async function saveImplementationRequest(reqData: {
   teacherCount: number;
   studentCount: number;
   notes?: string;
-}): Promise<string | null> {
+  plan: 'SekolahHub Class Basic' | 'SekolahHub Class Pro' | 'Basic Free' | 'Pro';
+}): Promise<{ id: string; status: 'Active' | 'Pending'; plan: string; authProvisioning: 'Queued' | 'PendingAdmin' }> {
   try {
     const colRef = collection(db, 'ImplementationRequests');
     const requestId = `REQ-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const isBasic = reqData.plan === 'SekolahHub Class Basic' || reqData.plan === 'Basic Free';
+
+    // Automatic status based on selected plan:
+    // SekolahHub Class Basic -> Active (automatically activated)
+    // SekolahHub Class Pro -> Pending (requires admin verification of payment)
+    const status: 'Active' | 'Pending' = isBasic ? 'Active' : 'Pending';
+    const authProvisioning: 'Queued' | 'PendingAdmin' = isBasic ? 'Queued' : 'PendingAdmin';
+
     const docRef = await addDoc(colRef, {
       ...reqData,
       requestId,
-      status: 'Pending',
+      status,
+      authProvisioning,
+      backendWorkerService: 'Firebase Admin SDK / Cloud Functions',
       submittedAt: new Date().toISOString(),
     });
-    return docRef.id;
+
+    return {
+      id: docRef.id,
+      status,
+      plan: reqData.plan,
+      authProvisioning,
+    };
   } catch (err) {
     console.error('Error saving implementation request:', err);
     throw err;
   }
 }
+
+export async function getLatestImplementationRequestByEmail(email: string): Promise<ImplementationRequest | null> {
+  if (!email || !email.trim()) return null;
+  try {
+    const colRef = collection(db, 'ImplementationRequests');
+    const q = query(colRef, where('email', '==', email.trim().toLowerCase()));
+    const snap = await getDocs(q);
+    if (snap.empty) return null;
+
+    const docs = snap.docs.map((d) => ({
+      id: d.id,
+      ...(d.data() as Omit<ImplementationRequest, 'id'>),
+    }));
+
+    docs.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+    return docs[0] || null;
+  } catch (err) {
+    console.error('Error fetching latest implementation request by email:', err);
+    return null;
+  }
+}
+
+export async function fetchAllImplementationRequests(): Promise<ImplementationRequest[]> {
+  try {
+    const headers: Record<string, string> = {};
+    if (auth.currentUser) {
+      const token = await auth.currentUser.getIdToken();
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const res = await fetch('/api/developer/implementation-requests', { headers });
+    if (!res.ok) {
+      throw new Error(`Backend API returned HTTP status ${res.status}`);
+    }
+    const json = await res.json();
+    if (json.success && Array.isArray(json.data)) {
+      const docs = json.data as ImplementationRequest[];
+      docs.sort((a, b) => new Date(b.submittedAt || 0).getTime() - new Date(a.submittedAt || 0).getTime());
+      return docs;
+    }
+    return [];
+  } catch (err) {
+    console.error('Error fetching implementation requests via backend API:', err);
+    return [];
+  }
+}
+
+
 
 

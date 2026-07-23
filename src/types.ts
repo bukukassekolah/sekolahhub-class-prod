@@ -146,8 +146,11 @@ export interface ImplementationRequest {
   teacherCount: number;
   studentCount: number;
   notes?: string;
-  status: 'Pending' | 'Approved' | 'Rejected';
+  plan: 'SekolahHub Class Basic' | 'SekolahHub Class Pro' | 'Basic Free' | 'Pro' | string;
+  authProvisioning?: 'Queued' | 'Processing' | 'Completed' | 'Failed' | 'PendingAdmin' | string;
+  status: 'Active' | 'Pending' | 'Approved' | 'Failed' | 'Completed' | 'Rejected' | string;
   submittedAt: string;
+  backendWorkerService?: string;
 }
 
 

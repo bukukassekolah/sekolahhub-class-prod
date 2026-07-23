@@ -3,6 +3,7 @@
     "TeacherProfile": {
       "title": "Teacher Profile",
       "description": "Profile information for the teacher and class settings",
+      "type": "object",
       "properties": {
         "userId": { "type": "string" },
         "teacherName": { "type": "string" },
@@ -17,6 +18,7 @@
     "Students": {
       "title": "Students",
       "description": "Student roster in the class",
+      "type": "object",
       "properties": {
         "teacherId": { "type": "string" },
         "nis": { "type": "string" },
@@ -33,6 +35,7 @@
     "Attendance": {
       "title": "Attendance",
       "description": "Daily student attendance records",
+      "type": "object",
       "properties": {
         "teacherId": { "type": "string" },
         "date": { "type": "string" },
@@ -45,6 +48,7 @@
     "Notes": {
       "title": "Notes",
       "description": "Teacher daily journal and class developments",
+      "type": "object",
       "properties": {
         "teacherId": { "type": "string" },
         "date": { "type": "string" },
@@ -57,6 +61,7 @@
     "Announcements": {
       "title": "Announcements",
       "description": "Class announcements and notices",
+      "type": "object",
       "properties": {
         "teacherId": { "type": "string" },
         "title": { "type": "string" },
@@ -66,9 +71,26 @@
       },
       "required": ["teacherId", "title", "content", "date", "status"]
     },
+    "Savings": {
+      "title": "Savings",
+      "description": "Student class savings transactions",
+      "type": "object",
+      "properties": {
+        "teacherId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "amount": { "type": "number" },
+        "type": { "type": "string", "enum": ["deposit", "withdrawal"] },
+        "note": { "type": "string" },
+        "date": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["teacherId", "studentId", "amount", "type", "date"]
+    },
     "Feedback": {
       "title": "Feedback",
       "description": "User feedback sent to system support",
+      "type": "object",
       "properties": {
         "userId": { "type": "string" },
         "userEmail": { "type": "string" },
@@ -81,6 +103,7 @@
     "ImplementationRequests": {
       "title": "Implementation Requests",
       "description": "School onboarding implementation requests",
+      "type": "object",
       "properties": {
         "requestId": { "type": "string" },
         "schoolName": { "type": "string" },
@@ -92,10 +115,46 @@
         "teacherCount": { "type": "number" },
         "studentCount": { "type": "number" },
         "notes": { "type": "string" },
+        "plan": { "type": "string", "enum": ["SekolahHub Class Basic", "SekolahHub Class Pro", "Basic Free", "Pro"] },
+        "authProvisioning": { "type": "string" },
         "status": { "type": "string" },
         "submittedAt": { "type": "string" }
       },
-      "required": ["schoolName", "contactName", "email", "whatsapp", "city", "educationLevel", "teacherCount", "studentCount", "status", "submittedAt"]
+      "required": ["schoolName", "contactName", "email", "whatsapp", "city", "educationLevel", "teacherCount", "studentCount", "plan", "status", "submittedAt"]
+    }
+  },
+  "firestore": {
+    "/TeacherProfile/{docId}": {
+      "schema": { "$ref": "#/entities/TeacherProfile" },
+      "description": "Teacher profiles"
+    },
+    "/Students/{docId}": {
+      "schema": { "$ref": "#/entities/Students" },
+      "description": "Student list"
+    },
+    "/Attendance/{docId}": {
+      "schema": { "$ref": "#/entities/Attendance" },
+      "description": "Attendance records"
+    },
+    "/Notes/{docId}": {
+      "schema": { "$ref": "#/entities/Notes" },
+      "description": "Teacher notes"
+    },
+    "/Announcements/{docId}": {
+      "schema": { "$ref": "#/entities/Announcements" },
+      "description": "Class announcements"
+    },
+    "/Savings/{docId}": {
+      "schema": { "$ref": "#/entities/Savings" },
+      "description": "Savings transactions"
+    },
+    "/Feedback/{docId}": {
+      "schema": { "$ref": "#/entities/Feedback" },
+      "description": "User feedback messages"
+    },
+    "/ImplementationRequests/{docId}": {
+      "schema": { "$ref": "#/entities/ImplementationRequests" },
+      "description": "Implementation requests"
     }
   }
 }

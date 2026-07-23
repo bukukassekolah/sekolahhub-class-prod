@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { LoginPage } from './components/LoginPage';
 import { Header } from './components/Header';
 import { Sidebar, ActiveTab } from './components/Sidebar';
@@ -11,6 +12,7 @@ import { TabunganSiswa } from './components/TabunganSiswa';
 import { CatatanGuru } from './components/CatatanGuru';
 import { Pengumuman } from './components/Pengumuman';
 import { Laporan } from './components/Laporan';
+import { DeveloperDashboard } from './components/DeveloperDashboard';
 import { AksaAIFloating } from './components/AksaAIFloating';
 import { FeedbackModal } from './components/FeedbackModal';
 import { UpgradeModal } from './components/UpgradeModal';
@@ -21,10 +23,26 @@ const MainAppContent: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [subAction, setSubAction] = useState<string | undefined>(undefined);
+  const [currentPath, setCurrentPath] = useState<string>(() => window.location.pathname);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
+
+  useEffect(() => {
+    const handleLocationChange = () => {
+      setCurrentPath(window.location.pathname);
+    };
+
+    window.addEventListener('popstate', handleLocationChange);
+    window.addEventListener('hashchange', handleLocationChange);
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('hashchange', handleLocationChange);
+    };
+  }, []);
+
+  const isDeveloperRoute = currentPath.startsWith('/developer') || window.location.hash.startsWith('#/developer');
 
   const handleNavigate = (tab: string, action?: string) => {
     let targetTab: ActiveTab = 'dashboard';
@@ -46,14 +64,22 @@ const MainAppContent: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 transition-colors">
         <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center animate-bounce shadow-lg shadow-blue-500/30 mb-4">
           <GraduationCap className="w-7 h-7" />
         </div>
-        <p className="text-sm font-bold text-slate-800 tracking-tight">SekolahHub Class Basic</p>
-        <p className="text-xs text-slate-500 mt-1">Memuat data kelas Anda...</p>
+        <p className="text-sm font-bold text-slate-800 dark:text-slate-200 tracking-tight">SekolahHub Class Basic</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Memuat data kelas Anda...</p>
       </div>
     );
+  }
+
+  // Developer Dashboard Route
+  if (isDeveloperRoute) {
+    if (!currentUser) {
+      return <LoginPage />;
+    }
+    return <DeveloperDashboard />;
   }
 
   // Show login page if not authenticated
@@ -61,8 +87,9 @@ const MainAppContent: React.FC = () => {
     return <LoginPage />;
   }
 
+
   return (
-    <div className="min-h-screen bg-slate-50/70 flex flex-col text-slate-900 font-sans">
+    <div className="min-h-screen bg-slate-50/70 dark:bg-slate-950 flex flex-col text-slate-900 dark:text-slate-100 font-sans transition-colors">
       <Header
         activeTab={activeTab}
         onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -132,8 +159,11 @@ const MainAppContent: React.FC = () => {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <MainAppContent />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <MainAppContent />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
+

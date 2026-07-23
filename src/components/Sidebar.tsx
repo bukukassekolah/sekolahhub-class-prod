@@ -67,25 +67,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Drawer Container */}
       <aside className={`
         fixed lg:static top-0 left-0 bottom-0 z-50
-        w-64 bg-white border-r border-slate-200/80 flex flex-col justify-between
+        w-64 bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 flex flex-col justify-between
         transform transition-transform duration-200 ease-in-out shrink-0
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         <div>
           {/* Header Mobile Close & Branding */}
-          <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+          <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold">
                 <School className="w-4 h-4" />
               </div>
-              <span className="font-extrabold text-slate-900 text-sm tracking-tight">
+              <span className="font-extrabold text-slate-900 dark:text-slate-100 text-sm tracking-tight">
                 Menu Administrasi
               </span>
             </div>
 
             <button
               onClick={onCloseMobile}
-              className="lg:hidden p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
+              className="lg:hidden p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
             >
               <X className="w-4 h-4" />
             </button>
@@ -111,10 +111,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all
                     ${isActive 
                       ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' 
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100'}
                   `}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400 dark:text-slate-500'}`} />
                   <span>{item.label}</span>
                 </button>
               );
@@ -123,16 +123,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Upgrade Pro Banner */}
-        <div className="p-3 border-t border-slate-100">
+        <div className="p-3 border-t border-slate-100 dark:border-slate-800">
           <div 
             onClick={onOpenUpgradeModal}
-            className="p-3 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/80 rounded-xl cursor-pointer hover:border-blue-300 transition-all group"
+            className="p-3 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-800/80 border border-blue-200/80 dark:border-slate-700 rounded-xl cursor-pointer hover:border-blue-300 dark:hover:border-slate-600 transition-all group"
           >
-            <div className="flex items-center gap-1.5 text-xs font-bold text-blue-900 mb-1">
-              <Sparkles className="w-3.5 h-3.5 text-blue-600 group-hover:rotate-12 transition-transform" />
+            <div className="flex items-center gap-1.5 text-xs font-bold text-blue-900 dark:text-blue-300 mb-1">
+              <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 group-hover:rotate-12 transition-transform" />
               <span>SekolahHub Class Pro</span>
             </div>
-            <p className="text-[11px] text-slate-600 leading-snug">
+            <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-snug">
               Jalur upgrade ke fitur Penilaian & Rapor Digital kapan saja.
             </p>
           </div>

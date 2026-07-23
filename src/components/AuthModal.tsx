@@ -166,91 +166,35 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           )}
 
           {tab === 'register' && (
-            <form onSubmit={handleRegister} className="space-y-3 text-xs">
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Nama Lengkap & Gelar</label>
-                <div className="relative">
-                  <User className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
-                  <input
-                    type="text"
-                    required
-                    value={teacherName}
-                    onChange={(e) => setTeacherName(e.target.value)}
-                    placeholder="Siti Rahmah, S.Pd."
-                    className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                  />
-                </div>
+            <div className="space-y-4 text-xs text-slate-600">
+              <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-xl space-y-2">
+                <p className="font-bold text-blue-900 flex items-center gap-1.5 text-xs">
+                  <Building className="w-4 h-4 text-blue-600 shrink-0" /> Pendaftaran Resmi Berdasarkan Paket
+                </p>
+                <p className="leading-relaxed text-[11px] text-blue-950">
+                  Untuk menjaga integritas data sekolah, pembuatan akun dilakukan melalui <strong>Permohonan Implementasi SekolahHub</strong> berdasarkan paket yang dipilih:
+                </p>
+                <ul className="list-disc pl-4 space-y-1 text-[11px] text-slate-700">
+                  <li><strong>SekolahHub Class Basic:</strong> Status Active (Otomatis). Disimpan di Firestore & antrean akun diproses oleh backend aman (Firebase Admin SDK / Cloud Functions).</li>
+                  <li><strong>SekolahHub Class Pro:</strong> Status Pending. Diaktifkan oleh Admin setelah verifikasi pembayaran.</li>
+                </ul>
               </div>
 
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Nama Sekolah</label>
-                <div className="relative">
-                  <Building className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
-                  <input
-                    type="text"
-                    required
-                    value={schoolName}
-                    onChange={(e) => setSchoolName(e.target.value)}
-                    placeholder="SD Negeri 01"
-                    className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Nama Kelas</label>
-                <div className="relative">
-                  <GraduationCap className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
-                  <input
-                    type="text"
-                    required
-                    value={className}
-                    onChange={(e) => setClassName(e.target.value)}
-                    placeholder="Kelas 1-A"
-                    className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Email Login</label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="guru@sekolah.sch.id"
-                    className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Kata Sandi (min. 6 karakter)</label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
-                  <input
-                    type="password"
-                    required
-                    minLength={6}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                  />
-                </div>
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-center">
+                <p className="font-semibold text-slate-800 text-xs">Belum mengajukan implementasi sekolah?</p>
+                <p className="text-[11px] text-slate-500">Silakan ajukan permohonan melalui form utama di halaman masuk.</p>
               </div>
 
               <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-2.5 font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md shadow-blue-600/20 transition-all disabled:opacity-50 mt-2"
+                type="button"
+                onClick={() => {
+                  onClose();
+                }}
+                className="w-full py-2.5 font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md transition-all text-xs"
               >
-                {loading ? 'Mendaftarkan...' : 'Daftar Akun Gratis'}
+                Buka Form Permohonan Implementasi
               </button>
-            </form>
+            </div>
           )}
 
           {tab === 'forgot' && (
