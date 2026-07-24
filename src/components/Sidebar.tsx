@@ -9,8 +9,17 @@ import {
   School,
   Settings,
   Sparkles,
+  LogOut,
+  Globe,
+  Newspaper,
+  FlaskConical,
+  Mic,
+  Code,
+  Share2,
+  Crown,
   X
 } from 'lucide-react';
+import { ClassInfo, GoogleUserProfile } from '../types';
 
 interface SidebarProps {
   activeTab: string;
@@ -18,6 +27,10 @@ interface SidebarProps {
   studentCount: number;
   isOpenMobile?: boolean;
   onCloseMobile?: () => void;
+  googleUser?: GoogleUserProfile | null;
+  classInfo?: ClassInfo;
+  isDemoMode?: boolean;
+  onLogout?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -25,7 +38,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setActiveTab,
   studentCount,
   isOpenMobile = false,
-  onCloseMobile
+  onCloseMobile,
+  googleUser,
+  classInfo,
+  isDemoMode = false,
+  onLogout,
 }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Ringkasan Kelas', icon: LayoutDashboard },
@@ -35,8 +52,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'savings', label: 'Tabungan Kelas', icon: Wallet },
     { id: 'journal', label: 'Jurnal Mengajar', icon: BookOpen },
     { id: 'classInfo', label: 'Identitas Kelas', icon: School },
-    { id: 'settings', label: 'Pengaturan', icon: Settings },
     { id: 'aksaAi', label: 'Aksa AI Assistant', icon: Sparkles, highlight: true },
+  ];
+
+  const proMenuItems = [
+    { id: 'pro-website', label: 'Website Kelas', icon: Globe },
+    { id: 'pro-mading', label: 'Mading Digital', icon: Newspaper },
+    { id: 'pro-aksa-lab', label: 'Laboratorium Aksa AI', icon: FlaskConical },
+    { id: 'pro-voice-to-text', label: 'Voice to Text', icon: Mic },
+    { id: 'pro-html-pro', label: 'HTML Professional', icon: Code },
+    { id: 'pro-publish-center', label: 'Publish Center', icon: Share2 },
   ];
 
   const handleSelectTab = (id: string) => {
@@ -45,6 +70,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       onCloseMobile();
     }
   };
+
+  const teacherName = googleUser?.name || classInfo?.teacherName || (isDemoMode ? 'Ibu Maria (Demo)' : 'Guru Sekolah');
+  const className = classInfo?.className || '6A';
 
   return (
     <>
@@ -69,11 +97,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
           ${isOpenMobile ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >
-        <div>
+        <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
           {/* Header in Drawer (Mobile/Tablet only) */}
-          <div className="flex items-center justify-between px-4 pb-3 mb-2 border-b border-[#5A5A40] lg:hidden">
+          <div className="flex items-center justify-between px-4 pb-3 mb-2 border-b border-[#5A5A40] lg:hidden shrink-0">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-base text-[#FDFCF9]">Menu Utama Guru</span>
+              <span className="font-bold text-base text-[#FDFCF9]">Menu Utama</span>
             </div>
             <button
               onClick={onCloseMobile}
@@ -87,12 +115,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           {/* Desktop Section Label */}
-          <div className="hidden lg:block px-6 pb-2 text-[11px] font-bold tracking-wider text-[#DDBEA9] uppercase">
-            Menu Utama Guru
+          <div className="hidden lg:block px-6 pb-2 text-[11px] font-bold tracking-wider text-[#DDBEA9] uppercase shrink-0">
+            Menu Utama
           </div>
 
           {/* Nav List */}
-          <nav className="px-3 space-y-1">
+          <nav className="px-3 space-y-1 flex-1">
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
@@ -143,23 +171,115 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </button>
               );
             })}
+
+            {/* Pro Section Header */}
+            <div className="pt-4 pb-1.5 px-3 flex items-center justify-between">
+              <span className="text-[11px] font-bold tracking-wider text-amber-300/90 uppercase flex items-center gap-1.5">
+                <Crown className="w-3.5 h-3.5 text-amber-400" />
+                <span>SekolahHub Pro</span>
+              </span>
+              <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-widest">
+                PREVIEW
+              </span>
+            </div>
+
+            {/* Pro Menu Items */}
+            {proMenuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleSelectTab(item.id)}
+                  id={`sidebar-item-${item.id}`}
+                  className={`w-full flex items-center justify-between px-3.5 py-2 rounded-xl font-medium text-xs transition-all ${
+                    isActive
+                      ? 'bg-amber-500 text-stone-950 font-extrabold shadow-md'
+                      : 'text-amber-100/90 hover:bg-[#5A5A40] hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 truncate">
+                    <span className="text-amber-400">👑</span>
+                    <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-stone-950' : 'text-amber-300'}`} />
+                    <span className="truncate">{item.label}</span>
+                  </div>
+
+                  <span
+                    className={`text-[9px] font-black px-1.5 py-0.5 rounded tracking-wider uppercase ${
+                      isActive
+                        ? 'bg-stone-950 text-amber-400'
+                        : 'bg-amber-400/20 text-amber-300 border border-amber-400/30'
+                    }`}
+                  >
+                    PRO
+                  </span>
+                </button>
+              );
+            })}
           </nav>
         </div>
 
-        {/* Footer Banner - Single Class Notice */}
-        <div className="px-3 mt-6">
-          <div className="p-3 rounded-xl bg-[#5A5A40]/80 border border-[#6E6E51]/60 text-xs text-[#E9E5D9]">
-            <div className="font-semibold text-[#A4AC86] mb-1 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#A4AC86]" />
-              Edisi Basic (Single Guru)
+        {/* Profile Section at Very Bottom */}
+        <div className="pt-4 px-3 border-t border-[#5A5A40] mt-auto shrink-0 space-y-2.5">
+          <div className="p-3 rounded-xl bg-[#5A5A40]/80 border border-[#6E6E51]/60 flex items-center gap-3">
+            {googleUser?.picture ? (
+              <img
+                src={googleUser.picture}
+                alt={teacherName}
+                className="w-9 h-9 rounded-full object-cover border border-[#A4AC86] shrink-0"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-[#A4AC86] text-[#2D302A] flex items-center justify-center font-bold text-sm shrink-0">
+                {teacherName.charAt(0).toUpperCase()}
+              </div>
+            )}
+
+            <div className="min-w-0 flex-1">
+              <div className="font-bold text-xs text-[#FDFCF9] truncate">
+                {teacherName}
+              </div>
+              <div className="text-[11px] text-[#E9E5D9]/80 truncate">
+                Wali Kelas {className}
+              </div>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                <span className="text-[10px] font-semibold text-emerald-300">Online</span>
+              </div>
             </div>
-            <p className="leading-relaxed text-[11px] text-[#FDFCF9]/90">
-              Khusus pengelolaan 1 kelas TK/SD. Sinkronisasi otomatis ke Google Spreadsheet Anda.
-            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => handleSelectTab('settings')}
+              id="btn-sidebar-settings"
+              className={`flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-semibold transition-colors border ${
+                activeTab === 'settings'
+                  ? 'bg-[#A4AC86] text-[#2D302A] font-bold border-[#A4AC86] shadow-sm'
+                  : 'bg-[#5A5A40] hover:bg-[#6E6E51] text-[#E9E5D9] border-[#6E6E51]/60'
+              }`}
+            >
+              <Settings className={`w-3.5 h-3.5 ${activeTab === 'settings' ? 'text-[#2D302A]' : 'text-[#A4AC86]'}`} />
+              <span>Pengaturan</span>
+            </button>
+
+            <button
+              onClick={() => {
+                if (onCloseMobile) onCloseMobile();
+                if (onLogout) onLogout();
+              }}
+              id="btn-sidebar-logout"
+              className="flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl bg-rose-900/40 hover:bg-rose-900/60 text-rose-200 text-xs font-semibold transition-colors border border-rose-800/50"
+            >
+              <LogOut className="w-3.5 h-3.5 text-rose-300" />
+              <span>Keluar</span>
+            </button>
           </div>
         </div>
       </aside>
     </>
   );
 };
+
 

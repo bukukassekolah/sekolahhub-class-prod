@@ -10,6 +10,7 @@ import { ClassSavingsView } from './components/views/ClassSavingsView';
 import { TeachingJournalView } from './components/views/TeachingJournalView';
 import { ClassIdentityView } from './components/views/ClassIdentityView';
 import { SettingsView } from './components/views/SettingsView';
+import { ProFeaturePreviewView } from './components/views/ProFeaturePreviewView';
 import { AksaAiWidget } from './components/AksaAiWidget';
 import { QuickActionModal } from './components/QuickActionModal';
 import { OnboardingModal } from './components/OnboardingModal';
@@ -449,101 +450,129 @@ export default function App() {
           studentCount={students.length}
           isOpenMobile={isMobileMenuOpen}
           onCloseMobile={() => setIsMobileMenuOpen(false)}
+          googleUser={googleUser}
+          classInfo={classInfo}
+          isDemoMode={isDemoMode}
+          onLogout={handleLogout}
         />
 
         {/* View Main Content Area */}
-        <main className="flex-1 min-w-0">
-          {activeTab === 'dashboard' && (
-            <DashboardView
-              classInfo={classInfo}
-              students={students}
-              attendance={attendance}
-              savings={savings}
-              journals={journals}
-              syncQueue={syncQueue}
-              googleUser={googleUser}
-              onNavigateTab={setActiveTab}
-              onOpenQuickAction={() => setIsQuickActionOpen(true)}
-              onInsertToGradebook={handleInsertToGradebook}
-              onInsertToJournal={handleInsertToJournal}
-            />
-          )}
-
-          {activeTab === 'students' && (
-            <StudentProfileView
-              students={students}
-              attendance={attendance}
-              grades={grades}
-              savings={savings}
-              onSaveStudent={saveStudent}
-              onDeleteStudent={deleteStudent}
-              onImportStudentsBatch={handleImportStudentsBatch}
-            />
-          )}
-
-          {activeTab === 'attendance' && (
-            <AttendanceView
-              students={students}
-              attendance={attendance}
-              onSaveAttendance={saveAttendanceBatch}
-            />
-          )}
-
-          {activeTab === 'gradebook' && (
-            <GradebookView
-              students={students}
-              grades={grades}
-              onSaveGrade={saveGrade}
-              onOpenAksaAi={() => setIsAksaModalOpen(true)}
-            />
-          )}
-
-          {activeTab === 'savings' && (
-            <ClassSavingsView
-              students={students}
-              savings={savings}
-              onAddTransaction={addSavingTransaction}
-            />
-          )}
-
-          {activeTab === 'journal' && (
-            <TeachingJournalView
-              journals={journals}
-              onSaveJournal={saveJournalEntry}
-              onOpenAksaAi={() => setIsAksaModalOpen(true)}
-            />
-          )}
-
-          {activeTab === 'classInfo' && (
-            <ClassIdentityView
-              classInfo={classInfo}
-              onSaveClassInfo={saveClassInfo}
-            />
-          )}
-
-          {activeTab === 'settings' && (
-            <SettingsView
-              classInfo={classInfo}
-              syncQueue={syncQueue}
-              currentTheme={currentTheme}
-              onThemeChange={handleThemeChange}
-              onManualSync={handleManualSync}
-              onResetData={resetAllDataToDefault}
-              onResetDatabase={handleResetDatabase}
-              onOpenImportModal={() => setActiveTab('students')}
-              isSyncing={isSyncing}
-            />
-          )}
-
-          {activeTab === 'aksaAi' && (
-            <div className="max-w-3xl mx-auto">
-              <AksaAiWidget
+        <main className="flex-1 min-w-0 flex flex-col justify-between">
+          <div>
+            {activeTab === 'dashboard' && (
+              <DashboardView
+                classInfo={classInfo}
                 students={students}
+                attendance={attendance}
+                savings={savings}
+                journals={journals}
+                syncQueue={syncQueue}
+                googleUser={googleUser}
+                onNavigateTab={setActiveTab}
+                onOpenQuickAction={() => setIsQuickActionOpen(true)}
                 onInsertToGradebook={handleInsertToGradebook}
                 onInsertToJournal={handleInsertToJournal}
               />
-            </div>
-          )}
+            )}
+
+            {activeTab === 'students' && (
+              <StudentProfileView
+                students={students}
+                attendance={attendance}
+                grades={grades}
+                savings={savings}
+                onSaveStudent={saveStudent}
+                onDeleteStudent={deleteStudent}
+                onImportStudentsBatch={handleImportStudentsBatch}
+              />
+            )}
+
+            {activeTab === 'attendance' && (
+              <AttendanceView
+                students={students}
+                attendance={attendance}
+                onSaveAttendance={saveAttendanceBatch}
+              />
+            )}
+
+            {activeTab === 'gradebook' && (
+              <GradebookView
+                students={students}
+                grades={grades}
+                onSaveGrade={saveGrade}
+                onOpenAksaAi={() => setIsAksaModalOpen(true)}
+              />
+            )}
+
+            {activeTab === 'savings' && (
+              <ClassSavingsView
+                students={students}
+                savings={savings}
+                onAddTransaction={addSavingTransaction}
+              />
+            )}
+
+            {activeTab === 'journal' && (
+              <TeachingJournalView
+                journals={journals}
+                onSaveJournal={saveJournalEntry}
+                onOpenAksaAi={() => setIsAksaModalOpen(true)}
+              />
+            )}
+
+            {activeTab === 'classInfo' && (
+              <ClassIdentityView
+                classInfo={classInfo}
+                onSaveClassInfo={saveClassInfo}
+              />
+            )}
+
+            {activeTab === 'settings' && (
+              <SettingsView
+                classInfo={classInfo}
+                syncQueue={syncQueue}
+                currentTheme={currentTheme}
+                onThemeChange={handleThemeChange}
+                onManualSync={handleManualSync}
+                onResetData={resetAllDataToDefault}
+                onResetDatabase={handleResetDatabase}
+                onOpenImportModal={() => setActiveTab('students')}
+                isSyncing={isSyncing}
+              />
+            )}
+
+            {activeTab === 'aksaAi' && (
+              <div className="max-w-3xl mx-auto">
+                <AksaAiWidget
+                  students={students}
+                  onInsertToGradebook={handleInsertToGradebook}
+                  onInsertToJournal={handleInsertToJournal}
+                />
+              </div>
+            )}
+
+            {activeTab.startsWith('pro-') && (
+              <ProFeaturePreviewView tabId={activeTab} />
+            )}
+          </div>
+
+          {/* Simple School Footer */}
+          <footer className="mt-10 pt-6 pb-2 border-t border-stone-200/80 text-center text-xs text-stone-500 space-y-1">
+            <p>© 2026 {classInfo.schoolName || 'SDI Al Hasan'}</p>
+            <p>
+              Powered by <span className="font-semibold text-stone-700">KUKAS Platform</span>
+            </p>
+            <p>
+              <a
+                href="https://www.kukas.biz.id"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-emerald-700 hover:text-emerald-800 hover:underline font-medium transition-colors"
+              >
+                www.kukas.biz.id
+              </a>
+            </p>
+          </footer>
         </main>
       </div>
 
