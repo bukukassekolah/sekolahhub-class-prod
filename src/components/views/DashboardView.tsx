@@ -21,7 +21,8 @@ import {
   ClassSavingTransaction,
   TeachingJournalEntry,
   SyncQueueItem,
-  AssessmentAspect
+  AssessmentAspect,
+  GoogleUserProfile
 } from '../../types';
 import { AksaAiWidget } from '../AksaAiWidget';
 
@@ -32,6 +33,7 @@ interface DashboardViewProps {
   savings: ClassSavingTransaction[];
   journals: TeachingJournalEntry[];
   syncQueue: SyncQueueItem[];
+  googleUser?: GoogleUserProfile | null;
   onNavigateTab: (tab: string) => void;
   onOpenQuickAction: () => void;
   onInsertToGradebook: (studentId: string, aspect: AssessmentAspect, narrative: string) => void;
@@ -45,6 +47,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   savings,
   journals,
   syncQueue,
+  googleUser,
   onNavigateTab,
   onOpenQuickAction,
   onInsertToGradebook,
@@ -84,8 +87,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Teacher Clock */}
-      <TeacherClock />
+      {/* Teacher Clock with Personalized Greeting */}
+      <TeacherClock
+        teacherName={googleUser?.name || classInfo.teacherName}
+        userPicture={googleUser?.picture}
+      />
 
       {/* Offline Queue Sync Bar */}
       {syncQueue.length > 0 && (

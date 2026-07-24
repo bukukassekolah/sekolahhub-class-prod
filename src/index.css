@@ -19,5 +19,181 @@ body {
   background-color: #FDFCF9;
   color: #2D302A;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
+
+/* --- THEME DEFINITIONS --- */
+
+/* 2. UMUM THEME (Modern Blue & Green Accent for TK / SD) */
+[data-theme="general"] {
+  --t-primary: #1E40AF;        /* Royal Blue */
+  --t-primary-dark: #1E293B;   /* Slate Navy Dark for AppBar / Sidebar */
+  --t-primary-light: #2563EB;  /* Bright Blue */
+  --t-accent: #10B981;         /* Emerald Green Accent */
+  --t-accent-gold: #38BDF8;    /* Sky Blue Highlight */
+  --t-peach: #ECFDF5;          /* Mint Light */
+  --t-cream: #E2E8F0;          /* Slate Cream */
+  --t-bg: #F8FAFC;             /* Clean White Slate BG */
+  --t-surface: #F1F5F9;        /* Light Slate Surface Card */
+  --t-border: #CBD5E1;         /* Border */
+  --t-text: #0F172A;           /* Dark Slate Text */
+}
+
+/* 3. ISLAMI THEME (Emerald Green Primary, Deep Green AppBar, Soft Gold Accent, Ivory White BG) */
+[data-theme="islamic"] {
+  --t-primary: #047857;        /* Emerald Green Primary */
+  --t-primary-dark: #022C22;   /* Very Deep Green for AppBar / Sidebar */
+  --t-primary-light: #065F46;  /* Deep Emerald Light */
+  --t-accent: #D97706;         /* Soft Gold Accent */
+  --t-accent-gold: #F59E0B;    /* Warm Gold Highlight */
+  --t-peach: #FEF3C7;          /* Soft Amber Light */
+  --t-cream: #EAE5D4;          /* Warm Ivory Cream */
+  --t-bg: #FAF8F5;             /* Ivory White BG */
+  --t-surface: #F3F0E6;        /* Ivory Surface Card */
+  --t-border: #E5DFC9;         /* Ivory Border */
+  --t-text: #1C2826;           /* Dark Forest Text */
+}
+
+/* Body Overrides */
+[data-theme="general"] body,
+[data-theme="islamic"] body {
+  background-color: var(--t-bg) !important;
+  color: var(--t-text) !important;
+}
+
+/* --- COLOR CLASS OVERRIDES FOR THEMES --- */
+
+/* Backgrounds */
+[data-theme="general"] .bg-\[\#5A5A40\],
+[data-theme="islamic"] .bg-\[\#5A5A40\] { background-color: var(--t-primary) !important; }
+
+[data-theme="general"] .bg-\[\#464632\],
+[data-theme="islamic"] .bg-\[\#464632\] { background-color: var(--t-primary-dark) !important; }
+
+[data-theme="general"] .bg-\[\#6E6E51\],
+[data-theme="islamic"] .bg-\[\#6E6E51\] { background-color: var(--t-primary-light) !important; }
+
+[data-theme="general"] .bg-\[\#A4AC86\],
+[data-theme="islamic"] .bg-\[\#A4AC86\] { background-color: var(--t-accent) !important; }
+
+[data-theme="general"] .bg-\[\#DDBEA9\],
+[data-theme="islamic"] .bg-\[\#DDBEA9\] { background-color: var(--t-accent-gold) !important; }
+
+[data-theme="general"] .bg-\[\#FFE8D6\],
+[data-theme="islamic"] .bg-\[\#FFE8D6\] { background-color: var(--t-peach) !important; }
+
+[data-theme="general"] .bg-\[\#E9E5D9\],
+[data-theme="islamic"] .bg-\[\#E9E5D9\] { background-color: var(--t-cream) !important; }
+
+[data-theme="general"] .bg-\[\#FDFCF9\],
+[data-theme="islamic"] .bg-\[\#FDFCF9\] { background-color: var(--t-bg) !important; }
+
+[data-theme="general"] .bg-\[\#F5F2EB\],
+[data-theme="islamic"] .bg-\[\#F5F2EB\] { background-color: var(--t-surface) !important; }
+
+/* Opacity modifier backgrounds */
+[data-theme="general"] .bg-\[\#5A5A40\]\/80,
+[data-theme="islamic"] .bg-\[\#5A5A40\]\/80 { background-color: color-mix(in srgb, var(--t-primary) 80%, transparent) !important; }
+
+[data-theme="general"] .bg-\[\#464632\]\/80,
+[data-theme="islamic"] .bg-\[\#464632\]\/80 { background-color: color-mix(in srgb, var(--t-primary-dark) 80%, transparent) !important; }
+
+[data-theme="general"] .bg-\[\#464632\]\/70,
+[data-theme="islamic"] .bg-\[\#464632\]\/70 { background-color: color-mix(in srgb, var(--t-primary-dark) 70%, transparent) !important; }
+
+[data-theme="general"] .bg-\[\#464632\]\/60,
+[data-theme="islamic"] .bg-\[\#464632\]\/60 { background-color: color-mix(in srgb, var(--t-primary-dark) 60%, transparent) !important; }
+
+[data-theme="general"] .bg-\[\#DDBEA9\]\/30,
+[data-theme="islamic"] .bg-\[\#DDBEA9\]\/30 { background-color: color-mix(in srgb, var(--t-accent-gold) 30%, transparent) !important; }
+
+[data-theme="general"] .bg-\[\#DDBEA9\]\/20,
+[data-theme="islamic"] .bg-\[\#DDBEA9\]\/20 { background-color: color-mix(in srgb, var(--t-accent-gold) 20%, transparent) !important; }
+
+[data-theme="general"] .bg-\[\#E9E5D9\]\/60,
+[data-theme="islamic"] .bg-\[\#E9E5D9\]\/60 { background-color: color-mix(in srgb, var(--t-cream) 60%, transparent) !important; }
+
+/* Hover Backgrounds */
+[data-theme="general"] .hover\:bg-\[\#5A5A40\]:hover,
+[data-theme="islamic"] .hover\:bg-\[\#5A5A40\]:hover { background-color: var(--t-primary) !important; }
+
+[data-theme="general"] .hover\:bg-\[\#464632\]:hover,
+[data-theme="islamic"] .hover\:bg-\[\#464632\]:hover { background-color: var(--t-primary-dark) !important; }
+
+[data-theme="general"] .hover\:bg-\[\#6E6E51\]:hover,
+[data-theme="islamic"] .hover\:bg-\[\#6E6E51\]:hover { background-color: var(--t-primary-light) !important; }
+
+[data-theme="general"] .hover\:bg-\[\#939b77\]:hover,
+[data-theme="islamic"] .hover\:bg-\[\#939b77\]:hover { background-color: color-mix(in srgb, var(--t-accent) 85%, black) !important; }
+
+[data-theme="general"] .hover\:bg-\[\#F5F2EB\]:hover,
+[data-theme="islamic"] .hover\:bg-\[\#F5F2EB\]:hover { background-color: var(--t-surface) !important; }
+
+/* Borders */
+[data-theme="general"] .border-\[\#5A5A40\],
+[data-theme="islamic"] .border-\[\#5A5A40\] { border-color: var(--t-primary) !important; }
+
+[data-theme="general"] .border-\[\#464632\],
+[data-theme="islamic"] .border-\[\#464632\] { border-color: var(--t-primary-dark) !important; }
+
+[data-theme="general"] .border-\[\#6E6E51\],
+[data-theme="islamic"] .border-\[\#6E6E51\] { border-color: var(--t-primary-light) !important; }
+
+[data-theme="general"] .border-\[\#A4AC86\],
+[data-theme="islamic"] .border-\[\#A4AC86\] { border-color: var(--t-accent) !important; }
+
+[data-theme="general"] .border-\[\#D8D3C5\],
+[data-theme="islamic"] .border-\[\#D8D3C5\] { border-color: var(--t-border) !important; }
+
+[data-theme="general"] .border-\[\#E9E5D9\],
+[data-theme="islamic"] .border-\[\#E9E5D9\] { border-color: var(--t-cream) !important; }
+
+/* Opacity modifier borders */
+[data-theme="general"] .border-\[\#6E6E51\]\/70,
+[data-theme="islamic"] .border-\[\#6E6E51\]\/70 { border-color: color-mix(in srgb, var(--t-primary-light) 70%, transparent) !important; }
+
+[data-theme="general"] .border-\[\#6E6E51\]\/60,
+[data-theme="islamic"] .border-\[\#6E6E51\]\/60 { border-color: color-mix(in srgb, var(--t-primary-light) 60%, transparent) !important; }
+
+[data-theme="general"] .border-\[\#DDBEA9\]\/50,
+[data-theme="islamic"] .border-\[\#DDBEA9\]\/50 { border-color: color-mix(in srgb, var(--t-accent-gold) 50%, transparent) !important; }
+
+[data-theme="general"] .border-\[\#DDBEA9\]\/40,
+[data-theme="islamic"] .border-\[\#DDBEA9\]\/40 { border-color: color-mix(in srgb, var(--t-accent-gold) 40%, transparent) !important; }
+
+/* Text Colors */
+[data-theme="general"] .text-\[\#5A5A40\],
+[data-theme="islamic"] .text-\[\#5A5A40\] { color: var(--t-primary) !important; }
+
+[data-theme="general"] .text-\[\#464632\],
+[data-theme="islamic"] .text-\[\#464632\] { color: var(--t-primary-dark) !important; }
+
+[data-theme="general"] .text-\[\#A4AC86\],
+[data-theme="islamic"] .text-\[\#A4AC86\] { color: var(--t-accent) !important; }
+
+[data-theme="general"] .text-\[\#2D302A\],
+[data-theme="islamic"] .text-\[\#2D302A\] { color: var(--t-text) !important; }
+
+[data-theme="general"] .text-\[\#DDBEA9\],
+[data-theme="islamic"] .text-\[\#DDBEA9\] { color: var(--t-accent-gold) !important; }
+
+[data-theme="general"] .text-\[\#FFE8D6\],
+[data-theme="islamic"] .text-\[\#FFE8D6\] { color: var(--t-peach) !important; }
+
+[data-theme="general"] .text-\[\#E9E5D9\],
+[data-theme="islamic"] .text-\[\#E9E5D9\] { color: var(--t-cream) !important; }
+
+[data-theme="general"] .text-\[\#E9E5D9\]\/80,
+[data-theme="islamic"] .text-\[\#E9E5D9\]\/80 { color: color-mix(in srgb, var(--t-cream) 80%, transparent) !important; }
+
+[data-theme="general"] .text-\[\#FDFCF9\],
+[data-theme="islamic"] .text-\[\#FDFCF9\] { color: #FFFFFF !important; }
+
+/* Ring focus & accents */
+[data-theme="general"] .ring-\[\#5A5A40\]\/20,
+[data-theme="islamic"] .ring-\[\#5A5A40\]\/20 { --tw-ring-color: color-mix(in srgb, var(--t-primary) 20%, transparent) !important; }
+
+[data-theme="general"] .accent-\[\#5A5A40\],
+[data-theme="islamic"] .accent-\[\#5A5A40\] { accent-color: var(--t-primary) !important; }
+
 

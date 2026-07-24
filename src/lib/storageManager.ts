@@ -6,7 +6,8 @@ import {
   ClassSavingTransaction,
   TeachingJournalEntry,
   FeedbackEntry,
-  SyncQueueItem
+  SyncQueueItem,
+  GoogleUserProfile
 } from '../types';
 import {
   initialClassInfo,
@@ -28,6 +29,28 @@ const STORAGE_KEYS = {
   FEEDBACK: 'sekolahhub_feedback',
   SYNC_QUEUE: 'sekolahhub_sync_queue',
   IS_LOGGED_IN: 'sekolahhub_is_logged_in',
+  GOOGLE_USER: 'sekolahhub_google_user',
+  THEME: 'sekolahhub_theme',
+};
+
+export type ThemeMode = 'default' | 'general' | 'islamic';
+
+export const getStoredTheme = (): ThemeMode => {
+  try {
+    const val = localStorage.getItem(STORAGE_KEYS.THEME);
+    if (val === 'general' || val === 'islamic' || val === 'default') {
+      return val;
+    }
+    return 'default';
+  } catch {
+    return 'default';
+  }
+};
+
+export const saveTheme = (theme: ThemeMode) => {
+  localStorage.setItem(STORAGE_KEYS.THEME, theme);
+  document.documentElement.setAttribute('data-theme', theme);
+  notifyDataChanged();
 };
 
 // Helper event dispatcher
@@ -244,6 +267,77 @@ export const clearSyncQueue = () => {
   notifyDataChanged();
 };
 
+export const clearOperationalData = () => {
+  localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify([]));
+  localStorage.setItem(STORAGE_KEYS.ATTENDANCE, JSON.stringify([]));
+  localStorage.setItem(STORAGE_KEYS.GRADES, JSON.stringify([]));
+  localStorage.setItem(STORAGE_KEYS.SAVINGS, JSON.stringify([]));
+  localStorage.setItem(STORAGE_KEYS.JOURNALS, JSON.stringify([]));
+  localStorage.setItem(STORAGE_KEYS.FEEDBACK, JSON.stringify([]));
+
+  const info = getStoredClassInfo();
+  info.studentCount = 0;
+  localStorage.setItem(STORAGE_KEYS.CLASS_INFO, JSON.stringify(info));
+
+  notifyDataChanged();
+};
+
+export const saveStudentsBatch = (
+  newStudents: StudentProfile[],
+  options: {
+    mode: 'append' | 'replace';
+    duplicateAction?: 'skip' | 'update' | 'cancel';
+  } = { mode: 'append', duplicateAction: 'skip' }
+): { success: boolean; countAdded: number; countUpdated: number; countSkipped: number } => {
+  const existingStudents = options.mode === 'replace' ? [] : getStoredStudents();
+
+  if (options.duplicateAction === 'cancel' && options.mode !== 'replace') {
+    const hasDuplicate = newStudents.some(newS =>
+      existingStudents.some(
+        exS => exS.id === newS.id || (exS.fullName.trim().toLowerCase() === newS.fullName.trim().toLowerCase())
+      )
+    );
+    if (hasDuplicate) {
+      return { success: false, countAdded: 0, countUpdated: 0, countSkipped: 0 };
+    }
+  }
+
+  let countAdded = 0;
+  let countUpdated = 0;
+  let countSkipped = 0;
+
+  const finalStudentsList = [...existingStudents];
+
+  for (const s of newStudents) {
+    const existingIdx = finalStudentsList.findIndex(
+      ex => ex.id === s.id || (ex.fullName.trim().toLowerCase() === s.fullName.trim().toLowerCase() && s.fullName.trim().length > 0)
+    );
+
+    if (existingIdx >= 0) {
+      if (options.duplicateAction === 'update') {
+        finalStudentsList[existingIdx] = { ...finalStudentsList[existingIdx], ...s };
+        countUpdated++;
+      } else {
+        countSkipped++;
+      }
+    } else {
+      finalStudentsList.push(s);
+      countAdded++;
+    }
+  }
+
+  localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(finalStudentsList));
+  addToSyncQueue('StudentProfile', 'UPDATE', finalStudentsList);
+
+  const info = getStoredClassInfo();
+  info.studentCount = finalStudentsList.length;
+  localStorage.setItem(STORAGE_KEYS.CLASS_INFO, JSON.stringify(info));
+
+  notifyDataChanged();
+
+  return { success: true, countAdded, countUpdated, countSkipped };
+};
+
 export const resetAllDataToDefault = () => {
   localStorage.setItem(STORAGE_KEYS.CLASS_INFO, JSON.stringify(initialClassInfo));
   localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(initialStudents));
@@ -258,10 +352,43 @@ export const resetAllDataToDefault = () => {
 
 export const getLoginState = (): boolean => {
   const val = localStorage.getItem(STORAGE_KEYS.IS_LOGGED_IN);
-  return val === null ? true : val === 'true'; // Default logged in for smooth demo experience
+  return val === 'true';
 };
 
 export const setLoginState = (loggedIn: boolean) => {
   localStorage.setItem(STORAGE_KEYS.IS_LOGGED_IN, loggedIn ? 'true' : 'false');
+  notifyDataChanged();
+};
+
+export const getStoredGoogleUser = (): GoogleUserProfile | null => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.GOOGLE_USER);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+export const saveGoogleUser = (user: GoogleUserProfile | null) => {
+  if (user) {
+    localStorage.setItem(STORAGE_KEYS.GOOGLE_USER, JSON.stringify(user));
+    localStorage.setItem(STORAGE_KEYS.IS_LOGGED_IN, 'true');
+  } else {
+    localStorage.removeItem(STORAGE_KEYS.GOOGLE_USER);
+  }
+  notifyDataChanged();
+};
+
+export const clearUserSession = () => {
+  localStorage.removeItem(STORAGE_KEYS.GOOGLE_USER);
+  localStorage.setItem(STORAGE_KEYS.IS_LOGGED_IN, 'false');
+  
+  // Reset teacher info in classInfo
+  const info = getStoredClassInfo();
+  info.teacherName = '';
+  info.teacherEmail = '';
+  info.googleSheetConnected = false;
+  localStorage.setItem(STORAGE_KEYS.CLASS_INFO, JSON.stringify(info));
+  
   notifyDataChanged();
 };

@@ -11,10 +11,22 @@ import {
   Loader2,
   AlertCircle,
   LogOut,
-  Lock
+  ExternalLink
 } from 'lucide-react';
 import { ClassInfo, EducationLevel } from '../types';
 import { triggerGoogleOAuthPopup, isGoogleOauthConfigured, GoogleUserProfile } from '../lib/googleAuth';
+import {
+  getStoredGoogleUser,
+  saveGoogleUser,
+  clearOperationalData,
+  getStoredStudents,
+  getStoredAttendance,
+  getStoredGrades,
+  getStoredSavings,
+  getStoredJournals,
+  getStoredFeedback
+} from '../lib/storageManager';
+import { createRealClassSpreadsheet, syncAllDataToRealSpreadsheet } from '../lib/googleSheets';
 
 interface OnboardingModalProps {
   isOpen: boolean;
@@ -34,16 +46,21 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
   const [step, setStep] = useState<number>(1); // 1: Info, 2: Google Auth, 3: Identitas Kelas, 4: Done
 
   const [formData, setFormData] = useState<ClassInfo>({ ...classInfo });
-  const [googleUser, setGoogleUser] = useState<GoogleUserProfile | null>(
-    classInfo.teacherEmail ? {
+  const [googleUser, setGoogleUser] = useState<GoogleUserProfile | null>(() => {
+    const stored = getStoredGoogleUser();
+    if (stored) return stored;
+    return classInfo.teacherEmail ? {
       id: 'google_user',
       name: classInfo.teacherName || 'Guru Sekolah',
       email: classInfo.teacherEmail
-    } : null
-  );
+    } : null;
+  });
 
   const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [isCreatingSheet, setIsCreatingSheet] = useState<boolean>(false);
+  const [sheetError, setSheetError] = useState<string | null>(null);
+  const [createdSheetUrl, setCreatedSheetUrl] = useState<string>('');
 
   if (!isOpen) return null;
 
@@ -52,6 +69,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
     setLoginError(null);
     try {
       const userProfile = await triggerGoogleOAuthPopup();
+      saveGoogleUser(userProfile);
       setGoogleUser(userProfile);
       setFormData(prev => ({
         ...prev,
@@ -68,7 +86,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
     }
   };
 
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
     if (step === 2 && !googleUser) {
       setLoginError('Harap login menggunakan akun Google Anda terlebih dahulu.');
       return;
@@ -79,13 +97,69 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
         alert('Harap isi Nama Sekolah dan Nama Kelas.');
         return;
       }
-      onSaveClassInfo({
-        ...formData,
-        googleSheetConnected: true,
-        googleSheetName: `SekolahHub Class Database - ${formData.className}`,
-        lastSyncedAt: new Date().toISOString()
-      });
-      setStep(4);
+
+      setIsCreatingSheet(true);
+      setSheetError(null);
+
+      try {
+        let userProfile = googleUser || getStoredGoogleUser();
+        // If user profile or access token is missing, attempt OAuth popup
+        if (!userProfile?.accessToken) {
+          userProfile = await triggerGoogleOAuthPopup();
+          saveGoogleUser(userProfile);
+          setGoogleUser(userProfile);
+        }
+
+        const accessToken = userProfile.accessToken!;
+        const sheetName = `SekolahHub Class Database - ${formData.className}`;
+
+        // Create spreadsheet using Google Sheets API
+        const { spreadsheetId, spreadsheetUrl } = await createRealClassSpreadsheet(accessToken, formData);
+        setCreatedSheetUrl(spreadsheetUrl);
+
+        // Clear demo data on onboarding so new class starts with a clean operational sheet
+        clearOperationalData();
+
+        // Run initial data sync with clean operational sheets
+        const initialSyncData = {
+          classInfo: {
+            ...formData,
+            googleSheetId: spreadsheetId,
+            googleSheetName: sheetName,
+            googleSheetConnected: true,
+            lastSyncedAt: new Date().toISOString()
+          },
+          students: [],
+          attendance: [],
+          grades: [],
+          savings: [],
+          journals: [],
+          feedback: []
+        };
+
+        await syncAllDataToRealSpreadsheet(accessToken, spreadsheetId, initialSyncData);
+
+        const updatedClassInfo: ClassInfo = {
+          ...formData,
+          googleSheetId: spreadsheetId,
+          googleSheetName: sheetName,
+          googleSheetConnected: true,
+          lastSyncedAt: new Date().toISOString(),
+          lastSyncError: undefined
+        };
+
+        onSaveClassInfo(updatedClassInfo);
+        setFormData(updatedClassInfo);
+        setStep(4);
+      } catch (err: any) {
+        console.error('Gagal membuat Google Spreadsheet:', err);
+        setSheetError(
+          err?.message ||
+            'Gagal membuat Google Spreadsheet di Google Drive Anda. Pastikan Anda menyetujui izin Google Sheets saat login.'
+        );
+      } finally {
+        setIsCreatingSheet(false);
+      }
     } else {
       setStep(prev => prev + 1);
     }
@@ -308,6 +382,13 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 Isi Identitas Kelas Anda
               </h3>
 
+              {sheetError && (
+                <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2 shadow-sm">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                  <span className="leading-relaxed font-medium">{sheetError}</span>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div className="sm:col-span-2 p-3 bg-[#F5F2EB] rounded-xl border border-[#D8D3C5] flex items-center gap-3">
                   <UserCheck className="w-5 h-5 text-[#5A5A40] shrink-0" />
@@ -385,11 +466,21 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               <div className="pt-3 flex justify-end">
                 <button
                   onClick={handleNextStep}
+                  disabled={isCreatingSheet}
                   id="btn-onboarding-step3-finish"
-                  className="bg-[#5A5A40] hover:bg-[#464632] text-[#FDFCF9] font-bold text-xs py-3 px-6 rounded-xl shadow-md flex items-center gap-2"
+                  className="bg-[#5A5A40] hover:bg-[#464632] text-[#FDFCF9] font-bold text-xs py-3 px-6 rounded-xl shadow-md flex items-center gap-2 transition-all disabled:opacity-75"
                 >
-                  <span>Hubungkan Google Sheets & Selesai</span>
-                  <ArrowRight className="w-4 h-4" />
+                  {isCreatingSheet ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-[#FDFCF9]" />
+                      <span>Membuat Google Spreadsheet di Drive...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Buat Spreadsheet & Selesai</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -397,25 +488,48 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
           {step === 4 && (
             <div className="space-y-4 text-center">
-              <div className="w-16 h-16 rounded-full bg-[#E9E5D9] text-[#5A5A40] flex items-center justify-center mx-auto">
-                <Database className="w-8 h-8" />
+              <div className="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto shadow-sm">
+                <CheckCircle2 className="w-9 h-9 text-emerald-700" />
               </div>
 
               <h3 className="font-extrabold text-lg text-[#2D302A]">
-                Pengaturan Kelas Selesai!
+                Spreadsheet Google Berhasil Dibuat!
               </h3>
 
               <p className="text-xs text-[#5A5A40] max-w-sm mx-auto leading-relaxed">
-                Spreadsheet <b>"SekolahHub Class Database - {formData.className}"</b> telah dikoneksikan ke akun <b>{formData.teacherEmail}</b>. Semua data tersimpan dengan aman.
+                Spreadsheet <b>"SekolahHub Class Database - {formData.className}"</b> telah resmi dibuat di Google Drive akun <b>{formData.teacherEmail}</b>.
               </p>
 
-              <div className="pt-4">
+              <div className="p-3.5 bg-[#F5F2EB] rounded-2xl border border-[#D8D3C5] max-w-md mx-auto text-left text-xs space-y-2">
+                <div className="flex justify-between items-center text-[#2D302A]">
+                  <span className="font-semibold text-stone-500 text-[11px]">Real Spreadsheet ID:</span>
+                  <span className="font-mono font-bold bg-white px-2 py-0.5 rounded border border-stone-200 text-[11px] text-emerald-900">
+                    {formData.googleSheetId || '1AbCdEf...'}
+                  </span>
+                </div>
+
+                <div className="pt-1 flex items-center justify-between">
+                  <span className="text-[11px] text-stone-500">Akses Langsung:</span>
+                  <a
+                    href={createdSheetUrl || `https://docs.google.com/spreadsheets/d/${formData.googleSheetId}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 font-bold text-emerald-800 hover:text-emerald-900 underline text-xs"
+                  >
+                    <span>Buka File di Google Sheets</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+              </div>
+
+              <div className="pt-3">
                 <button
                   onClick={onClose}
                   id="btn-onboarding-open-dashboard"
-                  className="bg-[#5A5A40] hover:bg-[#464632] text-[#FDFCF9] font-bold text-xs py-3 px-8 rounded-xl shadow-md transition-all"
+                  className="bg-[#5A5A40] hover:bg-[#464632] text-[#FDFCF9] font-bold text-xs py-3.5 px-8 rounded-xl shadow-md transition-all inline-flex items-center gap-2"
                 >
-                  Buka Dashboard Kelas Saya →
+                  <span>Buka Dashboard Kelas Saya</span>
+                  <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             </div>

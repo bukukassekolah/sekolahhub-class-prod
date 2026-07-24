@@ -4,6 +4,14 @@
 
 export type EducationLevel = 'PAUD' | 'TK' | 'RA' | 'MI' | 'SD';
 
+export interface GoogleUserProfile {
+  id: string;
+  name: string;
+  email: string;
+  picture?: string;
+  accessToken?: string;
+}
+
 export interface ClassInfo {
   id: string;
   schoolName: string;

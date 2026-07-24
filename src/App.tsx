@@ -22,6 +22,7 @@ import {
   getStoredGrades,
   getStoredSavings,
   getStoredJournals,
+  getStoredFeedback,
   getSyncQueue,
   saveClassInfo,
   saveStudent,
@@ -31,17 +32,30 @@ import {
   addSavingTransaction,
   saveJournalEntry,
   clearSyncQueue,
-  resetAllDataToDefault
+  resetAllDataToDefault,
+  clearOperationalData,
+  saveStudentsBatch,
+  getStoredGoogleUser,
+  saveGoogleUser,
+  clearUserSession,
+  getStoredTheme,
+  saveTheme,
+  ThemeMode
 } from './lib/storageManager';
+import { triggerGoogleOAuthPopup } from './lib/googleAuth';
 
-import { AssessmentAspect, GradeRecord, TeachingJournalEntry, ClassInfo } from './types';
+import { AssessmentAspect, GradeRecord, TeachingJournalEntry, ClassInfo, GoogleUserProfile, StudentProfile } from './types';
 
 export default function App() {
-  const [viewMode, setViewMode] = useState<'landing' | 'app'>('landing');
+  const [googleUser, setGoogleUser] = useState<GoogleUserProfile | null>(getStoredGoogleUser());
+  const [viewMode, setViewMode] = useState<'landing' | 'app'>(() => {
+    return getStoredGoogleUser() ? 'app' : 'landing';
+  });
   const [isDemoMode, setIsDemoMode] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('dashboard');
 
   // Stored State
+  const [currentTheme, setCurrentTheme] = useState<ThemeMode>(getStoredTheme());
   const [classInfo, setClassInfo] = useState(getStoredClassInfo());
   const [students, setStudents] = useState(getStoredStudents());
   const [attendance, setAttendance] = useState(getStoredAttendance());
@@ -50,11 +64,21 @@ export default function App() {
   const [journals, setJournals] = useState(getStoredJournals());
   const [syncQueue, setSyncQueue] = useState(getSyncQueue());
 
-  // UI Modals
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', currentTheme);
+  }, [currentTheme]);
+
+  const handleThemeChange = (newTheme: ThemeMode) => {
+    setCurrentTheme(newTheme);
+    saveTheme(newTheme);
+  };
+
+  // UI Modals & Navigation
   const [isAksaModalOpen, setIsAksaModalOpen] = useState(false);
   const [isQuickActionOpen, setIsQuickActionOpen] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Sync state subscriber
   const refreshState = () => {
@@ -65,6 +89,7 @@ export default function App() {
     setSavings(getStoredSavings());
     setJournals(getStoredJournals());
     setSyncQueue(getSyncQueue());
+    setGoogleUser(getStoredGoogleUser());
   };
 
   useEffect(() => {
@@ -73,24 +98,210 @@ export default function App() {
     return () => window.removeEventListener('sekolahhub_data_changed', handleDataChange);
   }, []);
 
+  // Google OAuth Login Success handler
+  const handleLoginSuccess = (userProfile: GoogleUserProfile) => {
+    saveGoogleUser(userProfile);
+    setGoogleUser(userProfile);
+    setIsDemoMode(false);
+    setViewMode('app');
+
+    // Automatically assign teacher name and email in classInfo if empty
+    const currentInfo = getStoredClassInfo();
+    const updatedInfo: ClassInfo = {
+      ...currentInfo,
+      teacherName: userProfile.name,
+      teacherEmail: userProfile.email,
+      googleSheetConnected: true
+    };
+    saveClassInfo(updatedInfo);
+    setClassInfo(updatedInfo);
+  };
+
+  // Google Logout handler
+  const handleLogout = () => {
+    clearUserSession();
+    setGoogleUser(null);
+    setIsDemoMode(false);
+    setViewMode('landing');
+    setIsOnboardingOpen(false);
+  };
+
   // Sync to Google Sheets
   const handleManualSync = async () => {
     setIsSyncing(true);
     try {
-      const queue = getSyncQueue();
+      let currentUser = googleUser || getStoredGoogleUser();
+      if (!currentUser?.accessToken) {
+        // Prompt re-auth if token is missing
+        currentUser = await triggerGoogleOAuthPopup();
+        saveGoogleUser(currentUser);
+        setGoogleUser(currentUser);
+      }
+
+      if (!classInfo.googleSheetId) {
+        alert('Spreadsheet ID belum dikonfigurasi. Harap buat Spreadsheet Google di menu Pengaturan atau jalankan Onboarding terlebih dahulu.');
+        return;
+      }
+
+      const allData = {
+        classInfo,
+        students,
+        attendance,
+        grades,
+        savings,
+        journals,
+        feedback: getStoredFeedback()
+      };
+
       const res = await fetch('/api/sheets/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ queue, sheetId: classInfo.googleSheetId })
+        body: JSON.stringify({
+          accessToken: currentUser.accessToken,
+          spreadsheetId: classInfo.googleSheetId,
+          allData
+        })
       });
+
       const data = await res.json();
-      if (data.success) {
-        clearSyncQueue();
-        const updatedInfo = { ...classInfo, lastSyncedAt: data.syncedAt };
-        saveClassInfo(updatedInfo);
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Gagal menyinkronkan data ke Google Sheets.');
       }
-    } catch {
-      alert('Gagal menyinkronkan ke server Google Sheets. Data tetap tersimpan aman secara lokal.');
+
+      clearSyncQueue();
+      const updatedInfo: ClassInfo = {
+        ...classInfo,
+        googleSheetConnected: true,
+        lastSyncedAt: data.syncedAt || new Date().toISOString(),
+        lastSyncError: undefined
+      };
+      saveClassInfo(updatedInfo);
+      setClassInfo(updatedInfo);
+      alert('Berhasil menyinkronkan seluruh data ke Google Spreadsheet!');
+    } catch (err: any) {
+      console.error('Manual sync error:', err);
+      const errMsg = err?.message || 'Gagal menyinkronkan data ke Google Sheets.';
+      const updatedInfo: ClassInfo = {
+        ...classInfo,
+        lastSyncError: errMsg
+      };
+      saveClassInfo(updatedInfo);
+      setClassInfo(updatedInfo);
+      alert(`Gagal Sinkronisasi: ${errMsg}`);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // Reset Database (Fitur Baru 2)
+  const handleResetDatabase = async () => {
+    setIsSyncing(true);
+    try {
+      // 1. Clear operational local data
+      clearOperationalData();
+
+      // Update React State
+      setStudents([]);
+      setAttendance([]);
+      setGrades([]);
+      setSavings([]);
+      setJournals([]);
+
+      // 2. Clear Google Sheets operational rows if connected
+      let currentUser = googleUser || getStoredGoogleUser();
+      if (!currentUser?.accessToken) {
+        currentUser = await triggerGoogleOAuthPopup();
+        saveGoogleUser(currentUser);
+        setGoogleUser(currentUser);
+      }
+
+      if (currentUser?.accessToken && classInfo.googleSheetId) {
+        const allData = {
+          classInfo,
+          students: [],
+          attendance: [],
+          grades: [],
+          savings: [],
+          journals: [],
+          feedback: []
+        };
+
+        const res = await fetch('/api/sheets/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            accessToken: currentUser.accessToken,
+            spreadsheetId: classInfo.googleSheetId,
+            allData
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || 'Gagal mengosongkan worksheet di Google Sheets.');
+        }
+      }
+
+      alert('Database operasional berhasil dikosongkan. Struktur database & identitas kelas tetap dipertahankan.');
+    } catch (err: any) {
+      console.error('Error resetting database:', err);
+      alert(`Berhasil mengosongkan data lokal. Catatan Google Sheets: ${err?.message || ''}`);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // Import Students Batch Handler (Fitur Baru 3-8)
+  const handleImportStudentsBatch = async (
+    importedStudentsList: StudentProfile[],
+    options: { mode: 'append' | 'replace'; duplicateAction: 'skip' | 'update' | 'cancel' }
+  ) => {
+    setIsSyncing(true);
+    try {
+      const result = saveStudentsBatch(importedStudentsList, options);
+
+      if (!result.success) {
+        alert('Proses import dibatalkan karena ditemukan data ganda.');
+        return;
+      }
+
+      // Refresh state
+      const updatedStudents = getStoredStudents();
+      setStudents(updatedStudents);
+
+      const info = getStoredClassInfo();
+      setClassInfo(info);
+
+      // Trigger sync to Google Sheets if connected
+      let currentUser = googleUser || getStoredGoogleUser();
+      if (currentUser?.accessToken && classInfo.googleSheetId) {
+        const allData = {
+          classInfo: info,
+          students: updatedStudents,
+          attendance,
+          grades,
+          savings,
+          journals,
+          feedback: getStoredFeedback()
+        };
+
+        await fetch('/api/sheets/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            accessToken: currentUser.accessToken,
+            spreadsheetId: classInfo.googleSheetId,
+            allData
+          })
+        });
+      }
+
+      alert(
+        `Berhasil mengimpor data siswa!\n• Ditambahkan: ${result.countAdded} siswa\n• Diperbarui: ${result.countUpdated} siswa\n• Dilewati: ${result.countSkipped} siswa`
+      );
+    } catch (err: any) {
+      console.error('Error batch importing students:', err);
+      alert(`Gagal mengimpor data siswa ke Google Sheets: ${err?.message || 'Terjadi kesalahan.'}`);
     } finally {
       setIsSyncing(false);
     }
@@ -178,6 +389,7 @@ export default function App() {
           onClose={() => setIsOnboardingOpen(false)}
           classInfo={classInfo}
           onSaveClassInfo={handleSaveClassInfoFromOnboarding}
+          onLoginSuccess={handleLoginSuccess}
         />
       </>
     );
@@ -217,21 +429,26 @@ export default function App() {
         classInfo={classInfo}
         syncQueue={syncQueue}
         isDemoMode={isDemoMode}
+        googleUser={googleUser}
         onOpenAksaAi={() => setIsAksaModalOpen(true)}
         onOpenOnboarding={() => setIsOnboardingOpen(true)}
         onManualSync={handleManualSync}
         onGoToLanding={() => setViewMode('landing')}
+        onLogout={handleLogout}
+        onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         isSyncing={isSyncing}
         activeTab={activeTab}
       />
 
       {/* Main Container */}
-      <div className="flex-1 flex flex-col md:flex-row max-w-7xl w-full mx-auto px-2 sm:px-4 lg:px-6 py-4 gap-4">
+      <div className="flex-1 flex flex-col lg:flex-row max-w-7xl w-full mx-auto px-2 sm:px-4 lg:px-6 py-4 gap-4">
         {/* Sidebar */}
         <Sidebar
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           studentCount={students.length}
+          isOpenMobile={isMobileMenuOpen}
+          onCloseMobile={() => setIsMobileMenuOpen(false)}
         />
 
         {/* View Main Content Area */}
@@ -244,6 +461,7 @@ export default function App() {
               savings={savings}
               journals={journals}
               syncQueue={syncQueue}
+              googleUser={googleUser}
               onNavigateTab={setActiveTab}
               onOpenQuickAction={() => setIsQuickActionOpen(true)}
               onInsertToGradebook={handleInsertToGradebook}
@@ -259,6 +477,7 @@ export default function App() {
               savings={savings}
               onSaveStudent={saveStudent}
               onDeleteStudent={deleteStudent}
+              onImportStudentsBatch={handleImportStudentsBatch}
             />
           )}
 
@@ -306,8 +525,12 @@ export default function App() {
             <SettingsView
               classInfo={classInfo}
               syncQueue={syncQueue}
+              currentTheme={currentTheme}
+              onThemeChange={handleThemeChange}
               onManualSync={handleManualSync}
               onResetData={resetAllDataToDefault}
+              onResetDatabase={handleResetDatabase}
+              onOpenImportModal={() => setActiveTab('students')}
               isSyncing={isSyncing}
             />
           )}
@@ -350,6 +573,7 @@ export default function App() {
         onClose={() => setIsOnboardingOpen(false)}
         classInfo={classInfo}
         onSaveClassInfo={handleSaveClassInfoFromOnboarding}
+        onLoginSuccess={handleLoginSuccess}
       />
     </div>
   );

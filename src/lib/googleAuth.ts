@@ -5,6 +5,7 @@ export interface GoogleUserProfile {
   name: string;
   email: string;
   picture?: string;
+  accessToken?: string;
 }
 
 /**
@@ -69,7 +70,7 @@ export const triggerGoogleOAuthPopup = async (): Promise<GoogleUserProfile> => {
       if (google?.accounts?.oauth2) {
         const client = google.accounts.oauth2.initTokenClient({
           client_id: clientId,
-          scope: 'openid profile email',
+          scope: 'openid profile email https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file',
           prompt: 'select_account',
           callback: async (tokenResponse: any) => {
             if (tokenResponse.error) {
@@ -101,7 +102,8 @@ export const triggerGoogleOAuthPopup = async (): Promise<GoogleUserProfile> => {
                   id: info.sub || `goog_${Date.now()}`,
                   name: info.name || info.given_name || 'Guru Sekolah',
                   email: info.email || '',
-                  picture: info.picture
+                  picture: info.picture,
+                  accessToken: tokenResponse.access_token
                 });
               } catch (e: any) {
                 reject(e);
@@ -124,7 +126,7 @@ export const triggerGoogleOAuthPopup = async (): Promise<GoogleUserProfile> => {
           client_id: clientId,
           redirect_uri: window.location.origin,
           response_type: 'token',
-          scope: 'openid profile email',
+          scope: 'openid profile email https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file',
           prompt: 'select_account'
         });
 
@@ -151,7 +153,8 @@ export const triggerGoogleOAuthPopup = async (): Promise<GoogleUserProfile> => {
                 id: info.sub || `goog_${Date.now()}`,
                 name: info.name || 'Guru Sekolah',
                 email: info.email || '',
-                picture: info.picture
+                picture: info.picture,
+                accessToken: event.data.token
               });
             } catch (err: any) {
               reject(err);

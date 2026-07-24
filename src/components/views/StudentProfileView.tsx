@@ -12,9 +12,11 @@ import {
   Eye,
   X,
   User,
-  Heart
+  Heart,
+  FileSpreadsheet
 } from 'lucide-react';
 import { StudentProfile, AttendanceRecord, GradeRecord, ClassSavingTransaction } from '../../types';
+import { ImportStudentsModal } from '../ImportStudentsModal';
 
 interface StudentProfileViewProps {
   students: StudentProfile[];
@@ -23,6 +25,10 @@ interface StudentProfileViewProps {
   savings: ClassSavingTransaction[];
   onSaveStudent: (student: StudentProfile) => void;
   onDeleteStudent: (studentId: string) => void;
+  onImportStudentsBatch?: (
+    students: StudentProfile[],
+    options: { mode: 'append' | 'replace'; duplicateAction: 'skip' | 'update' | 'cancel' }
+  ) => Promise<void>;
 }
 
 export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
@@ -32,12 +38,14 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
   savings,
   onSaveStudent,
   onDeleteStudent,
+  onImportStudentsBatch,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [genderFilter, setGenderFilter] = useState<'Semua' | 'L' | 'P'>('Semua');
 
   // Modal states
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<StudentProfile | null>(null);
   const [viewingStudent, setViewingStudent] = useState<StudentProfile | null>(null);
 
@@ -142,14 +150,25 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={openAddModal}
-          id="btn-add-student"
-          className="bg-emerald-800 hover:bg-emerald-700 text-white font-semibold text-xs py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center gap-2 shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Tambah Siswa Baru</span>
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => setIsImportModalOpen(true)}
+            id="btn-import-excel-students"
+            className="bg-[#5A5A40] hover:bg-[#464632] text-[#FDFCF9] font-semibold text-xs py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center gap-2"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-300" />
+            <span>Import Excel Siswa</span>
+          </button>
+
+          <button
+            onClick={openAddModal}
+            id="btn-add-student"
+            className="bg-emerald-800 hover:bg-emerald-700 text-white font-semibold text-xs py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Tambah Siswa Baru</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter & Search Bar */}
@@ -528,6 +547,18 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Import Excel Modal */}
+      <ImportStudentsModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        existingStudentsCount={students.length}
+        onImportSuccess={async (importedList, options) => {
+          if (onImportStudentsBatch) {
+            await onImportStudentsBatch(importedList, options);
+          }
+        }}
+      />
     </div>
   );
 };
