@@ -10,9 +10,11 @@ import {
   Loader2,
   X
 } from 'lucide-react';
-import { AssessmentAspect, StudentProfile } from '../types';
+import { AssessmentAspect, StudentProfile, ClassInfo } from '../types';
+import { getSubjectsByLevel } from '../lib/subjectConfig';
 
 interface AksaAiWidgetProps {
+  classInfo?: ClassInfo;
   students: StudentProfile[];
   onInsertToGradebook?: (studentId: string, aspect: AssessmentAspect, narrative: string) => void;
   onInsertToJournal?: (topic: string, content: string) => void;
@@ -21,19 +23,21 @@ interface AksaAiWidgetProps {
 }
 
 export const AksaAiWidget: React.FC<AksaAiWidgetProps> = ({
+  classInfo,
   students,
   onInsertToGradebook,
   onInsertToJournal,
   onClose,
   isModal = false
 }) => {
+  const levelSubjects = getSubjectsByLevel(classInfo?.level);
   const [activeTab, setActiveTab] = useState<'narrative' | 'journal' | 'activity'>('narrative');
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
   // Form State - Narrative
   const [selectedStudentId, setSelectedStudentId] = useState<string>(students[0]?.id || '');
-  const [aspect, setAspect] = useState<AssessmentAspect>('Kognitif');
+  const [aspect, setAspect] = useState<string>(levelSubjects[0] || 'Kognitif');
   const [observations, setObservations] = useState<string>('');
 
   // Form State - Journal
@@ -197,17 +201,17 @@ export const AksaAiWidget: React.FC<AksaAiWidgetProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#2D302A] mb-1">Aspek Perkembangan</label>
+                <label className="block text-xs font-semibold text-[#2D302A] mb-1">Kategori / Mata Pelajaran</label>
                 <select
                   value={aspect}
-                  onChange={(e) => setAspect(e.target.value as AssessmentAspect)}
+                  onChange={(e) => setAspect(e.target.value)}
                   className="w-full text-xs p-2.5 rounded-xl border border-[#D8D3C5] focus:ring-2 focus:ring-[#5A5A40] focus:border-[#5A5A40] outline-none"
                 >
-                  <option value="Kognitif">Kognitif (Logika & Berhitung)</option>
-                  <option value="Motorik">Motorik (Fisik Halus/Kasar)</option>
-                  <option value="Bahasa">Bahasa & Membaca</option>
-                  <option value="Sosial-Emosional">Sosial-Emosional & Kemandirian</option>
-                  <option value="Seni">Seni & Kreativitas</option>
+                  {levelSubjects.map((subj) => (
+                    <option key={subj} value={subj}>
+                      {subj}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>

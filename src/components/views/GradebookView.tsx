@@ -10,9 +10,11 @@ import {
   Calendar,
   Filter
 } from 'lucide-react';
-import { StudentProfile, GradeRecord, AssessmentAspect, DevelopmentalRating } from '../../types';
+import { StudentProfile, GradeRecord, AssessmentAspect, DevelopmentalRating, ClassInfo } from '../../types';
+import { getSubjectsByLevel } from '../../lib/subjectConfig';
 
 interface GradebookViewProps {
+  classInfo?: ClassInfo;
   students: StudentProfile[];
   grades: GradeRecord[];
   onSaveGrade: (grade: GradeRecord) => void;
@@ -20,18 +22,20 @@ interface GradebookViewProps {
 }
 
 export const GradebookView: React.FC<GradebookViewProps> = ({
+  classInfo,
   students,
   grades,
   onSaveGrade,
   onOpenAksaAi,
 }) => {
-  const [selectedAspect, setSelectedAspect] = useState<AssessmentAspect | 'Semua'>('Semua');
+  const levelSubjects = getSubjectsByLevel(classInfo?.level);
+  const [selectedAspect, setSelectedAspect] = useState<string>('Semua');
   const [searchTerm, setSearchTerm] = useState('');
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [studentId, setStudentId] = useState(students[0]?.id || '');
-  const [aspect, setAspect] = useState<AssessmentAspect>('Kognitif');
+  const [aspect, setAspect] = useState<string>(levelSubjects[0] || 'Kognitif');
   const [rating, setRating] = useState<DevelopmentalRating>('BSH');
   const [description, setDescription] = useState('');
   const [teacherNote, setTeacherNote] = useState('');
@@ -39,7 +43,7 @@ export const GradebookView: React.FC<GradebookViewProps> = ({
 
   const openAddModal = () => {
     setStudentId(students[0]?.id || '');
-    setAspect('Kognitif');
+    setAspect(levelSubjects[0] || 'Kognitif');
     setRating('BSH');
     setDescription('');
     setTeacherNote('');
@@ -98,8 +102,12 @@ export const GradebookView: React.FC<GradebookViewProps> = ({
             <Award className="w-6 h-6 text-teal-700" />
             <span>Buku Nilai & Perkembangan Belajar Siswa</span>
           </h2>
-          <p className="text-xs text-stone-500 mt-0.5">
-            Dokumentasi evaluasi aspek Kognitif, Motorik, Bahasa, Sosial-Emosional, dan Seni
+          <p className="text-xs text-stone-500 mt-1 flex items-center gap-2 flex-wrap">
+            <span className="font-semibold text-teal-900 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
+              Jenjang {classInfo?.level || 'TK'}
+            </span>
+            <span>•</span>
+            <span>Kategori/Mata Pelajaran: {levelSubjects.join(', ')}</span>
           </p>
         </div>
 
@@ -136,18 +144,29 @@ export const GradebookView: React.FC<GradebookViewProps> = ({
           />
         </div>
 
-        <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-stone-300 text-xs font-medium overflow-x-auto">
-          {(['Semua', 'Kognitif', 'Motorik', 'Bahasa', 'Sosial-Emosional', 'Seni'] as const).map(asp => (
+        <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-stone-300 text-xs font-medium overflow-x-auto max-w-full">
+          <button
+            key="Semua"
+            onClick={() => setSelectedAspect('Semua')}
+            className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-colors ${
+              selectedAspect === 'Semua'
+                ? 'bg-teal-800 text-white font-bold'
+                : 'text-stone-600 hover:bg-stone-100'
+            }`}
+          >
+            Semua
+          </button>
+          {levelSubjects.map(subj => (
             <button
-              key={asp}
-              onClick={() => setSelectedAspect(asp)}
+              key={subj}
+              onClick={() => setSelectedAspect(subj)}
               className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-colors ${
-                selectedAspect === asp
+                selectedAspect === subj
                   ? 'bg-teal-800 text-white font-bold'
                   : 'text-stone-600 hover:bg-stone-100'
               }`}
             >
-              {asp}
+              {subj}
             </button>
           ))}
         </div>
@@ -235,22 +254,22 @@ export const GradebookView: React.FC<GradebookViewProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-stone-700 mb-1">Aspek Perkembangan *</label>
+                  <label className="block text-xs font-semibold text-stone-700 mb-1">Kategori / Mata Pelajaran *</label>
                   <select
                     value={aspect}
-                    onChange={(e) => setAspect(e.target.value as AssessmentAspect)}
+                    onChange={(e) => setAspect(e.target.value)}
                     className="w-full text-xs p-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-teal-600 outline-none"
                   >
-                    <option value="Kognitif">Kognitif</option>
-                    <option value="Motorik">Motorik</option>
-                    <option value="Bahasa">Bahasa</option>
-                    <option value="Sosial-Emosional">Sosial-Emosional</option>
-                    <option value="Seni">Seni</option>
+                    {levelSubjects.map(subj => (
+                      <option key={subj} value={subj}>
+                        {subj}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-stone-700 mb-1">Tingkat Capaian (PAUD/SD) *</label>
+                  <label className="block text-xs font-semibold text-stone-700 mb-1">Tingkat Capaian *</label>
                   <select
                     value={rating}
                     onChange={(e) => setRating(e.target.value as DevelopmentalRating)}
@@ -319,3 +338,4 @@ export const GradebookView: React.FC<GradebookViewProps> = ({
     </div>
   );
 };
+

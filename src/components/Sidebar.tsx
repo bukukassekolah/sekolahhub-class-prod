@@ -17,6 +17,7 @@ import {
   Code,
   Share2,
   Crown,
+  FolderHeart,
   X
 } from 'lucide-react';
 import { ClassInfo, GoogleUserProfile } from '../types';
@@ -56,6 +57,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   const proMenuItems = [
+    { id: 'pro-portofolio', label: 'Portofolio Siswa', icon: FolderHeart, star: true },
     { id: 'pro-website', label: 'Website Kelas', icon: Globe },
     { id: 'pro-mading', label: 'Mading Digital', icon: Newspaper },
     { id: 'pro-aksa-lab', label: 'Laboratorium Aksa AI', icon: FlaskConical },
@@ -200,7 +202,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-2.5 truncate">
-                    <span className="text-amber-400">👑</span>
+                    <span className="text-amber-400">{item.star ? '⭐' : '👑'}</span>
                     <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-stone-950' : 'text-amber-300'}`} />
                     <span className="truncate">{item.label}</span>
                   </div>

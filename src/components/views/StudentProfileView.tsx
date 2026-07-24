@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { StudentProfile, AttendanceRecord, GradeRecord, ClassSavingTransaction } from '../../types';
 import { ImportStudentsModal } from '../ImportStudentsModal';
+import { StudentAvatar } from '../StudentAvatar';
 
 interface StudentProfileViewProps {
   students: StudentProfile[];
@@ -101,7 +102,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
       parentName,
       parentWhatsapp,
       address,
-      photoUrl: photoUrl || 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=200&auto=format&fit=crop&q=80',
+      photoUrl: photoUrl || '',
       specialNotes,
       createdAt: editingStudent ? editingStudent.createdAt : new Date().toISOString().split('T')[0]
     };
@@ -219,10 +220,13 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
               <div className="p-4 space-y-3">
                 {/* Header info */}
                 <div className="flex items-start gap-3">
-                  <img
-                    src={s.photoUrl || 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=200&auto=format&fit=crop&q=80'}
-                    alt={s.fullName}
-                    className="w-14 h-14 rounded-2xl object-cover border border-stone-200 shadow-sm shrink-0"
+                  <StudentAvatar
+                    student={s}
+                    size="lg"
+                    showCameraButton={true}
+                    onPhotoChange={(newPhotoUrl) => {
+                      onSaveStudent({ ...s, photoUrl: newPhotoUrl });
+                    }}
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 mb-1">
@@ -412,7 +416,7 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
                   type="text"
                   value={photoUrl}
                   onChange={(e) => setPhotoUrl(e.target.value)}
-                  placeholder="https://images.unsplash.com/..."
+                  placeholder="Kosongkan jika tanpa foto / URL foto"
                   className="w-full text-xs p-2.5 rounded-xl border border-stone-300 focus:ring-2 focus:ring-emerald-600 outline-none"
                 />
               </div>
@@ -454,10 +458,15 @@ export const StudentProfileView: React.FC<StudentProfileViewProps> = ({
           <div className="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-stone-200 overflow-hidden max-h-[90vh] flex flex-col">
             <div className="bg-gradient-to-r from-emerald-900 to-teal-900 text-white p-5 flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <img
-                  src={viewingStudent.photoUrl || 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=200&auto=format&fit=crop&q=80'}
-                  alt={viewingStudent.fullName}
-                  className="w-16 h-16 rounded-2xl object-cover border-2 border-white/20 shadow-md"
+                <StudentAvatar
+                  student={viewingStudent}
+                  size="xl"
+                  showCameraButton={true}
+                  onPhotoChange={(newPhotoUrl) => {
+                    const updated = { ...viewingStudent, photoUrl: newPhotoUrl };
+                    onSaveStudent(updated);
+                    setViewingStudent(updated);
+                  }}
                 />
                 <div>
                   <h3 className="font-bold text-lg">{viewingStudent.fullName}</h3>

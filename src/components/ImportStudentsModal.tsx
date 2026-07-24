@@ -196,7 +196,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
       parentWhatsapp: parentWhatsappVal,
       address: addressVal,
       specialNotes: specialNotesVal,
-      photoUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=200&auto=format&fit=crop&q=80',
+      photoUrl: '',
       createdAt: new Date().toISOString().split('T')[0]
     };
 

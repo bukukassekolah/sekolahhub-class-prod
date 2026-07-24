@@ -35,7 +35,7 @@ export const initialStudents: StudentProfile[] = [
     parentName: 'Bpk. Hendra Alfarizi',
     parentWhatsapp: '081234567801',
     address: 'Jl. Mawar No. 12, RT 02/04, Kelurahan Sukajadi',
-    photoUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=200&auto=format&fit=crop&q=80',
+    photoUrl: '',
     specialNotes: 'Alergi seafood & kacang tanah. Memiliki bakat menggambar tinggi.',
     createdAt: '2026-07-10'
   },
@@ -48,7 +48,7 @@ export const initialStudents: StudentProfile[] = [
     parentName: 'Ibu Ratna Dewi',
     parentWhatsapp: '081234567802',
     address: 'Komplek Asri Indah Blok B3 No. 8',
-    photoUrl: 'https://images.unsplash.com/photo-1595454810237-77fbef180dbf?w=200&auto=format&fit=crop&q=80',
+    photoUrl: '',
     specialNotes: 'Sangat giat membaca cerita sederhana. Pemalu jika dipanggil di depan kelas.',
     createdAt: '2026-07-10'
   },
@@ -61,7 +61,7 @@ export const initialStudents: StudentProfile[] = [
     parentName: 'Bpk. Ahmad Zhafran',
     parentWhatsapp: '081234567803',
     address: 'Jl. Melati IV No. 45',
-    photoUrl: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=200&auto=format&fit=crop&q=80',
+    photoUrl: '',
     specialNotes: 'Memerlukan motivasi ekstra saat kegiatan mewarnai.',
     createdAt: '2026-07-10'
   },
@@ -74,7 +74,7 @@ export const initialStudents: StudentProfile[] = [
     parentName: 'Ibu Siska Utami',
     parentWhatsapp: '081234567804',
     address: 'Jl. Anggrek Cendrawasih No. 19',
-    photoUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&auto=format&fit=crop&q=80',
+    photoUrl: '',
     specialNotes: 'Sangat komunikatif, sering membantu teman merapikan mainan.',
     createdAt: '2026-07-10'
   },
@@ -87,7 +87,7 @@ export const initialStudents: StudentProfile[] = [
     parentName: 'Bpk. Budi Santoso',
     parentWhatsapp: '081234567805',
     address: 'Jl. Kenanga Mas No. 88',
-    photoUrl: 'https://images.unsplash.com/photo-1485546246426-74dc88dec4d9?w=200&auto=format&fit=crop&q=80',
+    photoUrl: '',
     specialNotes: 'Memakai kacamata, disarankan duduk di barisan depan.',
     createdAt: '2026-07-10'
   },
@@ -100,7 +100,7 @@ export const initialStudents: StudentProfile[] = [
     parentName: 'Ibu Fitriani',
     parentWhatsapp: '081234567806',
     address: 'Griya Flamboyan No. 15',
-    photoUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=200&auto=format&fit=crop&q=80',
+    photoUrl: '',
     specialNotes: 'Sangat antusias pada pelajaran menyanyi dan musik ritmis.',
     createdAt: '2026-07-10'
   },
@@ -113,7 +113,7 @@ export const initialStudents: StudentProfile[] = [
     parentName: 'Bpk. Irfan Maulana',
     parentWhatsapp: '081234567807',
     address: 'Jl. Teratai Indah No. 3',
-    photoUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&auto=format&fit=crop&q=80',
+    photoUrl: '',
     specialNotes: 'Sangat aktif motorik kasar, menyukai permainan balok bangunan.',
     createdAt: '2026-07-10'
   },
@@ -126,7 +126,7 @@ export const initialStudents: StudentProfile[] = [
     parentName: 'Ibu Nabila Kurnia',
     parentWhatsapp: '081234567808',
     address: 'Jl. Kartini Baru No. 102',
-    photoUrl: 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?w=200&auto=format&fit=crop&q=80',
+    photoUrl: '',
     specialNotes: 'Rajin menabung dan disiplin membawa peralatan tulis sendiri.',
     createdAt: '2026-07-10'
   },
@@ -139,7 +139,7 @@ export const initialStudents: StudentProfile[] = [
     parentName: 'Bpk. Faisal Rasyid',
     parentWhatsapp: '081234567809',
     address: 'Jl. Diponegoro Gang 5 No. 7',
-    photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
+    photoUrl: '',
     specialNotes: 'Fokus tinggi dalam menyusun puzzle kompleks 50 keping.',
     createdAt: '2026-07-10'
   },
@@ -152,7 +152,7 @@ export const initialStudents: StudentProfile[] = [
     parentName: 'Ibu Maya Permata',
     parentWhatsapp: '081234567810',
     address: 'Jl. Sudirman Permai C12',
-    photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+    photoUrl: '',
     specialNotes: 'Mandiri dan pandai mengungkapkan perasaan dengan sopan.',
     createdAt: '2026-07-10'
   }

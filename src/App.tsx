@@ -497,6 +497,7 @@ export default function App() {
 
             {activeTab === 'gradebook' && (
               <GradebookView
+                classInfo={classInfo}
                 students={students}
                 grades={grades}
                 onSaveGrade={saveGrade}
@@ -544,6 +545,7 @@ export default function App() {
             {activeTab === 'aksaAi' && (
               <div className="max-w-3xl mx-auto">
                 <AksaAiWidget
+                  classInfo={classInfo}
                   students={students}
                   onInsertToGradebook={handleInsertToGradebook}
                   onInsertToJournal={handleInsertToJournal}
@@ -580,6 +582,7 @@ export default function App() {
       {isAksaModalOpen && (
         <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-sm flex items-center justify-center p-4">
           <AksaAiWidget
+            classInfo={classInfo}
             students={students}
             onInsertToGradebook={handleInsertToGradebook}
             onInsertToJournal={handleInsertToJournal}

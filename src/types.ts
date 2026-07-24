@@ -54,7 +54,7 @@ export interface AttendanceRecord {
   notes?: string;
 }
 
-export type AssessmentAspect = 'Kognitif' | 'Motorik' | 'Bahasa' | 'Sosial-Emosional' | 'Seni';
+export type AssessmentAspect = string;
 
 // BSB: Berkembang Sangat Baik, BSH: Berkembang Sesuai Harapan, MB: Mulai Berkembang, BB: Belum Berkembang
 export type DevelopmentalRating = 'BSB' | 'BSH' | 'MB' | 'BB';

@@ -331,6 +331,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* Embedded Aksa AI Assistant */}
       <div className="pt-2">
         <AksaAiWidget
+          classInfo={classInfo}
           students={students}
           onInsertToGradebook={onInsertToGradebook}
           onInsertToJournal={onInsertToJournal}
