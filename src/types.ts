@@ -1,156 +1,122 @@
-export type AttendanceStatus = 'Hadir' | 'Izin' | 'Sakit' | 'Alfa';
+/**
+ * SekolahHub Class Basic Edition - Data Models
+ */
 
-export type NoteCategory = 'Jurnal Harian' | 'Perkembangan Siswa' | 'Pelanggaran' | 'Prestasi' | 'Catatan Khusus';
+export type EducationLevel = 'PAUD' | 'TK' | 'RA' | 'MI' | 'SD';
 
-export type AnnouncementStatus = 'Draft' | 'Publikasikan' | 'Terkirim';
-
-export type FeedbackType = 'Saran' | 'Bug' | 'Pertanyaan' | 'Permintaan Fitur';
-
-export interface TeacherProfile {
-  id?: string;
-  userId?: string;
-  teacherName: string;
+export interface ClassInfo {
+  id: string;
   schoolName: string;
   className: string;
+  level: EducationLevel;
+  teacherName: string;
+  teacherNip?: string;
+  teacherEmail: string;
   academicYear: string;
-  semester: string;
+  studentCount: number;
   schoolLogo?: string;
-  phone?: string;
-  updatedAt?: string;
+  googleSheetId?: string;
+  googleSheetName?: string;
+  googleSheetConnected: boolean;
+  lastSyncedAt?: string;
 }
 
-export interface Student {
+export interface StudentProfile {
   id: string;
-  nis: string;
-  name: string;
+  fullName: string;
+  nickname: string;
   gender: 'L' | 'P';
-  birthDate: string;
+  birthDate: string; // YYYY-MM-DD
   parentName: string;
   parentWhatsapp: string;
   address: string;
-  isActive: boolean;
-  teacherId?: string;
-  createdAt?: string;
+  photoUrl?: string;
+  specialNotes?: string; // Alergi, Kebutuhan khusus, Catatan khusus
+  createdAt: string;
 }
 
+export type AttendanceStatus = 'Hadir' | 'Izin' | 'Sakit' | 'Alpa';
+
 export interface AttendanceRecord {
-  id?: string;
+  id: string;
   date: string; // YYYY-MM-DD
   studentId: string;
   studentName: string;
   status: AttendanceStatus;
   notes?: string;
-  teacherId?: string;
-  updatedAt?: string;
 }
 
-export type Gender = 'L' | 'P';
+export type AssessmentAspect = 'Kognitif' | 'Motorik' | 'Bahasa' | 'Sosial-Emosional' | 'Seni';
 
-export interface AppUser {
-  uid: string;
-  email: string | null;
-  displayName: string | null;
-  isDemo?: boolean;
+// BSB: Berkembang Sangat Baik, BSH: Berkembang Sesuai Harapan, MB: Mulai Berkembang, BB: Belum Berkembang
+export type DevelopmentalRating = 'BSB' | 'BSH' | 'MB' | 'BB';
+
+export interface GradeRecord {
+  id: string;
+  date: string; // YYYY-MM-DD
+  studentId: string;
+  studentName: string;
+  aspect: AssessmentAspect;
+  rating: DevelopmentalRating;
+  description: string;
+  teacherNote?: string;
 }
 
-export type NoteItem = TeacherNote;
-export type AnnouncementItem = Announcement;
+export type SavingTransactionType = 'Setoran' | 'Penarikan';
 
-export interface FeedbackItem {
-  id?: string;
-  userId?: string;
-  userEmail: string;
+export interface ClassSavingTransaction {
+  id: string;
+  date: string; // YYYY-MM-DD HH:mm
+  studentId: string;
+  studentName: string;
+  type: SavingTransactionType;
+  amount: number;
+  runningBalance: number;
+  description: string;
+}
+
+export interface TeachingJournalEntry {
+  id: string;
+  date: string; // YYYY-MM-DD
+  topic: string;
+  activities: string;
+  mediaUsed: string;
+  reflection: string;
+  photoUrl?: string;
+}
+
+export type FeedbackType = 'Saran' | 'Bug' | 'Pertanyaan' | 'Fitur';
+
+export interface FeedbackEntry {
+  id: string;
+  date: string;
   type: FeedbackType;
   message: string;
-  createdAt: string;
-}
-
-export interface TeacherNote {
-  id: string;
-  date: string; // YYYY-MM-DD
-  title: string;
-  content: string;
-  category: NoteCategory;
-  teacherId?: string;
-  createdAt?: string;
-}
-
-export interface Announcement {
-  id: string;
-  title: string;
-  content: string;
-  date: string; // YYYY-MM-DD
-  status: AnnouncementStatus;
-  teacherId?: string;
-  createdAt?: string;
-}
-
-export interface FeedbackMessage {
-  id?: string;
-  type: FeedbackType;
-  content: string;
-  userEmail: string;
-  userName?: string;
-  createdAt: string;
-}
-
-export interface ClassSummaryStats {
-  totalStudents: number;
-  activeStudents: number;
-  todayAttendancePercent: number;
-  presentCount: number;
-  permissionCount: number;
-  sickCount: number;
-  alphaCount: number;
-  unrecordedCount: number;
-  totalNotes: number;
-  publishedAnnouncements: number;
-}
-
-export type SavingsTransactionType = 'deposit' | 'withdrawal';
-
-export interface SavingsTransaction {
-  id: string;
-  date: string; // YYYY-MM-DD
-  type: SavingsTransactionType;
-  amount: number;
-  notes?: string;
-  studentId: string;
-  studentName: string;
-  teacherId?: string;
-  createdAt?: string;
-}
-
-export interface StudentSavingsSummary {
-  student: Student;
-  studentId: string;
-  studentName: string;
-  nis?: string;
-  balance: number;
-  currentBalance: number;
-  totalDeposit: number;
-  totalWithdrawal: number;
-  transactionCount: number;
-  lastTransactionDate?: string;
-}
-
-export interface ImplementationRequest {
-  id?: string;
-  requestId?: string;
-  schoolName: string;
-  contactName: string;
   email: string;
-  whatsapp: string;
-  city: string;
-  educationLevel: string;
-  teacherCount: number;
-  studentCount: number;
-  notes?: string;
-  plan: 'SekolahHub Class Basic' | 'SekolahHub Class Pro' | 'Basic Free' | 'Pro' | string;
-  authProvisioning?: 'Queued' | 'Processing' | 'Completed' | 'Failed' | 'PendingAdmin' | string;
-  status: 'Active' | 'Pending' | 'Approved' | 'Failed' | 'Completed' | 'Rejected' | string;
-  submittedAt: string;
-  backendWorkerService?: string;
+  status: 'Terkirim' | 'Diproses';
 }
 
+export interface SyncQueueItem {
+  id: string;
+  timestamp: string;
+  table: 'StudentProfile' | 'Attendance' | 'Grades' | 'ClassSavings' | 'TeachingJournal' | 'ClassInfo' | 'Feedback';
+  action: 'CREATE' | 'UPDATE' | 'DELETE';
+  data: any;
+}
 
+export interface AksaAiRequest {
+  mode: 'narrative' | 'journal' | 'activity';
+  studentName?: string;
+  aspect?: AssessmentAspect;
+  observations?: string;
+  topic?: string;
+  learningGoal?: string;
+  ageGroup?: string;
+  media?: string;
+}
+
+export interface AksaAiResponse {
+  success: boolean;
+  result: string;
+  error?: string;
+}

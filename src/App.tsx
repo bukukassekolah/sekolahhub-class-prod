@@ -1,169 +1,356 @@
 import React, { useState, useEffect } from 'react';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { ThemeProvider } from './context/ThemeContext';
-import { LoginPage } from './components/LoginPage';
-import { Header } from './components/Header';
-import { Sidebar, ActiveTab } from './components/Sidebar';
-import { Dashboard } from './components/Dashboard';
-import { ProfilKelas } from './components/ProfilKelas';
-import { DataSiswa } from './components/DataSiswa';
-import { Presensi } from './components/Presensi';
-import { TabunganSiswa } from './components/TabunganSiswa';
-import { CatatanGuru } from './components/CatatanGuru';
-import { Pengumuman } from './components/Pengumuman';
-import { Laporan } from './components/Laporan';
-import { DeveloperDashboard } from './components/DeveloperDashboard';
-import { AksaAIFloating } from './components/AksaAIFloating';
-import { FeedbackModal } from './components/FeedbackModal';
-import { UpgradeModal } from './components/UpgradeModal';
-import { GraduationCap } from 'lucide-react';
+import { Navbar } from './components/Navbar';
+import { Sidebar } from './components/Sidebar';
+import { LandingPageView } from './components/views/LandingPageView';
+import { DashboardView } from './components/views/DashboardView';
+import { StudentProfileView } from './components/views/StudentProfileView';
+import { AttendanceView } from './components/views/AttendanceView';
+import { GradebookView } from './components/views/GradebookView';
+import { ClassSavingsView } from './components/views/ClassSavingsView';
+import { TeachingJournalView } from './components/views/TeachingJournalView';
+import { ClassIdentityView } from './components/views/ClassIdentityView';
+import { SettingsView } from './components/views/SettingsView';
+import { AksaAiWidget } from './components/AksaAiWidget';
+import { QuickActionModal } from './components/QuickActionModal';
+import { OnboardingModal } from './components/OnboardingModal';
+import { Sparkles, ArrowRight } from 'lucide-react';
 
-const MainAppContent: React.FC = () => {
-  const { currentUser, loading } = useAuth();
+import {
+  getStoredClassInfo,
+  getStoredStudents,
+  getStoredAttendance,
+  getStoredGrades,
+  getStoredSavings,
+  getStoredJournals,
+  getSyncQueue,
+  saveClassInfo,
+  saveStudent,
+  deleteStudent,
+  saveAttendanceBatch,
+  saveGrade,
+  addSavingTransaction,
+  saveJournalEntry,
+  clearSyncQueue,
+  resetAllDataToDefault
+} from './lib/storageManager';
 
-  const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
-  const [subAction, setSubAction] = useState<string | undefined>(undefined);
-  const [currentPath, setCurrentPath] = useState<string>(() => window.location.pathname);
+import { AssessmentAspect, GradeRecord, TeachingJournalEntry, ClassInfo } from './types';
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
-  const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
+export default function App() {
+  const [viewMode, setViewMode] = useState<'landing' | 'app'>('landing');
+  const [isDemoMode, setIsDemoMode] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<string>('dashboard');
 
-  useEffect(() => {
-    const handleLocationChange = () => {
-      setCurrentPath(window.location.pathname);
-    };
+  // Stored State
+  const [classInfo, setClassInfo] = useState(getStoredClassInfo());
+  const [students, setStudents] = useState(getStoredStudents());
+  const [attendance, setAttendance] = useState(getStoredAttendance());
+  const [grades, setGrades] = useState(getStoredGrades());
+  const [savings, setSavings] = useState(getStoredSavings());
+  const [journals, setJournals] = useState(getStoredJournals());
+  const [syncQueue, setSyncQueue] = useState(getSyncQueue());
 
-    window.addEventListener('popstate', handleLocationChange);
-    window.addEventListener('hashchange', handleLocationChange);
-    return () => {
-      window.removeEventListener('popstate', handleLocationChange);
-      window.removeEventListener('hashchange', handleLocationChange);
-    };
-  }, []);
+  // UI Modals
+  const [isAksaModalOpen, setIsAksaModalOpen] = useState(false);
+  const [isQuickActionOpen, setIsQuickActionOpen] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  const isDeveloperRoute = currentPath.startsWith('/developer') || window.location.hash.startsWith('#/developer');
-
-  const handleNavigate = (tab: string, action?: string) => {
-    let targetTab: ActiveTab = 'dashboard';
-    if (tab === 'profile' || tab === 'profil') targetTab = 'profile';
-    else if (tab === 'students' || tab === 'siswa') targetTab = 'students';
-    else if (tab === 'attendance' || tab === 'presensi') targetTab = 'attendance';
-    else if (tab === 'savings' || tab === 'tabungan') targetTab = 'savings';
-    else if (tab === 'notes' || tab === 'catatan') targetTab = 'notes';
-    else if (tab === 'announcements' || tab === 'pengumuman') targetTab = 'announcements';
-    else if (tab === 'reports' || tab === 'laporan') targetTab = 'reports';
-    else if (tab === 'feedback') {
-      setIsFeedbackOpen(true);
-      return;
-    }
-
-    setActiveTab(targetTab);
-    setSubAction(action);
+  // Sync state subscriber
+  const refreshState = () => {
+    setClassInfo(getStoredClassInfo());
+    setStudents(getStoredStudents());
+    setAttendance(getStoredAttendance());
+    setGrades(getStoredGrades());
+    setSavings(getStoredSavings());
+    setJournals(getStoredJournals());
+    setSyncQueue(getSyncQueue());
   };
 
-  if (loading) {
+  useEffect(() => {
+    const handleDataChange = () => refreshState();
+    window.addEventListener('sekolahhub_data_changed', handleDataChange);
+    return () => window.removeEventListener('sekolahhub_data_changed', handleDataChange);
+  }, []);
+
+  // Sync to Google Sheets
+  const handleManualSync = async () => {
+    setIsSyncing(true);
+    try {
+      const queue = getSyncQueue();
+      const res = await fetch('/api/sheets/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ queue, sheetId: classInfo.googleSheetId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        clearSyncQueue();
+        const updatedInfo = { ...classInfo, lastSyncedAt: data.syncedAt };
+        saveClassInfo(updatedInfo);
+      }
+    } catch {
+      alert('Gagal menyinkronkan ke server Google Sheets. Data tetap tersimpan aman secara lokal.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // Demo mode launcher
+  const handleStartDemo = () => {
+    setIsDemoMode(true);
+    setViewMode('app');
+    if (!classInfo.teacherName) {
+      const demoClassInfo: ClassInfo = {
+        ...classInfo,
+        teacherName: 'Ibu Maria, S.Pd. (Demo)',
+        teacherEmail: 'guru.demo@sekolahhub.id',
+        schoolName: 'TK Pembina Ceria Melati',
+        className: 'Kelas B2 - Bintang Kecil',
+        googleSheetConnected: true
+      };
+      saveClassInfo(demoClassInfo);
+      setClassInfo(demoClassInfo);
+    }
+  };
+
+  // Onboarding save handler
+  const handleSaveClassInfoFromOnboarding = (updatedInfo: ClassInfo) => {
+    saveClassInfo(updatedInfo);
+    setClassInfo(updatedInfo);
+    setIsDemoMode(false);
+    setViewMode('app');
+    setIsOnboardingOpen(false);
+  };
+
+  // Insertion handlers for Aksa AI outputs
+  const handleInsertToGradebook = (studentId: string, aspect: AssessmentAspect, narrative: string) => {
+    const student = students.find(s => s.id === studentId);
+    if (!student) return;
+
+    const newGrade: GradeRecord = {
+      id: `grd_${Date.now()}`,
+      date: new Date().toISOString().split('T')[0],
+      studentId: student.id,
+      studentName: student.fullName,
+      aspect,
+      rating: 'BSB',
+      description: narrative,
+      teacherNote: 'Dihasilkan bersama Aksa AI Assistant'
+    };
+
+    saveGrade(newGrade);
+    setIsAksaModalOpen(false);
+    setActiveTab('gradebook');
+    alert(`Narasi hasil belajar berhasil disimpan ke Buku Nilai untuk ${student.fullName}!`);
+  };
+
+  const handleInsertToJournal = (topic: string, content: string) => {
+    const newEntry: TeachingJournalEntry = {
+      id: `jrn_${Date.now()}`,
+      date: new Date().toISOString().split('T')[0],
+      topic,
+      activities: content,
+      mediaUsed: 'Disusun bersama Aksa AI',
+      reflection: 'Proses pembelajaran terencana dengan bantuan AI Assistant.'
+    };
+
+    saveJournalEntry(newEntry);
+    setIsAksaModalOpen(false);
+    setActiveTab('journal');
+    alert('Draf jurnal mengajar berhasil disimpan ke Jurnal Harian!');
+  };
+
+  const handleQuickActionSelect = (actionId: 'attendance' | 'gradebook' | 'journal' | 'savings') => {
+    setActiveTab(actionId);
+  };
+
+  // If viewing Landing Page as initial entry point
+  if (viewMode === 'landing') {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 transition-colors">
-        <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center animate-bounce shadow-lg shadow-blue-500/30 mb-4">
-          <GraduationCap className="w-7 h-7" />
-        </div>
-        <p className="text-sm font-bold text-slate-800 dark:text-slate-200 tracking-tight">SekolahHub Class Basic</p>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Memuat data kelas Anda...</p>
-      </div>
+      <>
+        <LandingPageView
+          onStartUse={() => setIsOnboardingOpen(true)}
+          onStartDemo={handleStartDemo}
+        />
+        <OnboardingModal
+          isOpen={isOnboardingOpen}
+          onClose={() => setIsOnboardingOpen(false)}
+          classInfo={classInfo}
+          onSaveClassInfo={handleSaveClassInfoFromOnboarding}
+        />
+      </>
     );
   }
 
-  // Developer Dashboard Route
-  if (isDeveloperRoute) {
-    if (!currentUser) {
-      return <LoginPage />;
-    }
-    return <DeveloperDashboard />;
-  }
-
-  // Show login page if not authenticated
-  if (!currentUser) {
-    return <LoginPage />;
-  }
-
-
   return (
-    <div className="min-h-screen bg-slate-50/70 dark:bg-slate-950 flex flex-col text-slate-900 dark:text-slate-100 font-sans transition-colors">
-      <Header
+    <div className="min-h-screen bg-[#FDFCF9] text-[#2D302A] font-sans flex flex-col">
+      {/* Demo Mode Top Banner */}
+      {isDemoMode && (
+        <div className="bg-[#FFE8D6] border-b border-[#DDBEA9] px-4 py-2 text-xs text-[#2D302A] flex flex-col sm:flex-row items-center justify-between gap-2 shadow-inner z-40">
+          <div className="flex items-center gap-2 font-medium">
+            <span className="px-2 py-0.5 bg-[#DDBEA9] text-[#2D302A] font-extrabold rounded-md text-[10px] uppercase tracking-wider">
+              MODE DEMO
+            </span>
+            <span>Anda sedang mencoba SekolahHub Class dengan data sampel sekolah.</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsOnboardingOpen(true)}
+              className="bg-[#5A5A40] hover:bg-[#464632] text-[#FDFCF9] px-3.5 py-1 rounded-xl font-bold transition-all text-xs flex items-center gap-1.5 shadow-sm"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#A4AC86]" />
+              <span>Mulai Gunakan (Hubungkan Google)</span>
+            </button>
+            <button
+              onClick={() => setViewMode('landing')}
+              className="text-[#5A5A40] hover:underline font-bold text-xs"
+            >
+              Ke Landing Page
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Top Navigation */}
+      <Navbar
+        classInfo={classInfo}
+        syncQueue={syncQueue}
+        isDemoMode={isDemoMode}
+        onOpenAksaAi={() => setIsAksaModalOpen(true)}
+        onOpenOnboarding={() => setIsOnboardingOpen(true)}
+        onManualSync={handleManualSync}
+        onGoToLanding={() => setViewMode('landing')}
+        isSyncing={isSyncing}
         activeTab={activeTab}
-        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-        onOpenUpgradeModal={() => setIsUpgradeOpen(true)}
-        onOpenFeedbackModal={() => setIsFeedbackOpen(true)}
       />
 
-      <div className="flex-1 flex max-w-7xl w-full mx-auto">
+      {/* Main Container */}
+      <div className="flex-1 flex flex-col md:flex-row max-w-7xl w-full mx-auto px-2 sm:px-4 lg:px-6 py-4 gap-4">
+        {/* Sidebar */}
         <Sidebar
           activeTab={activeTab}
-          setActiveTab={(tab) => handleNavigate(tab)}
-          isOpen={isSidebarOpen}
-          onCloseMobile={() => setIsSidebarOpen(false)}
-          onOpenUpgradeModal={() => setIsUpgradeOpen(true)}
-          onOpenFeedbackModal={() => setIsFeedbackOpen(true)}
+          setActiveTab={setActiveTab}
+          studentCount={students.length}
         />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0">
+        {/* View Main Content Area */}
+        <main className="flex-1 min-w-0">
           {activeTab === 'dashboard' && (
-            <Dashboard onNavigate={handleNavigate} />
-          )}
-
-          {activeTab === 'profile' && (
-            <ProfilKelas />
+            <DashboardView
+              classInfo={classInfo}
+              students={students}
+              attendance={attendance}
+              savings={savings}
+              journals={journals}
+              syncQueue={syncQueue}
+              onNavigateTab={setActiveTab}
+              onOpenQuickAction={() => setIsQuickActionOpen(true)}
+              onInsertToGradebook={handleInsertToGradebook}
+              onInsertToJournal={handleInsertToJournal}
+            />
           )}
 
           {activeTab === 'students' && (
-            <DataSiswa initialOpenAdd={subAction === 'add'} />
+            <StudentProfileView
+              students={students}
+              attendance={attendance}
+              grades={grades}
+              savings={savings}
+              onSaveStudent={saveStudent}
+              onDeleteStudent={deleteStudent}
+            />
           )}
 
           {activeTab === 'attendance' && (
-            <Presensi />
+            <AttendanceView
+              students={students}
+              attendance={attendance}
+              onSaveAttendance={saveAttendanceBatch}
+            />
+          )}
+
+          {activeTab === 'gradebook' && (
+            <GradebookView
+              students={students}
+              grades={grades}
+              onSaveGrade={saveGrade}
+              onOpenAksaAi={() => setIsAksaModalOpen(true)}
+            />
           )}
 
           {activeTab === 'savings' && (
-            <TabunganSiswa />
+            <ClassSavingsView
+              students={students}
+              savings={savings}
+              onAddTransaction={addSavingTransaction}
+            />
           )}
 
-          {activeTab === 'notes' && (
-            <CatatanGuru initialOpenAdd={subAction === 'add'} />
+          {activeTab === 'journal' && (
+            <TeachingJournalView
+              journals={journals}
+              onSaveJournal={saveJournalEntry}
+              onOpenAksaAi={() => setIsAksaModalOpen(true)}
+            />
           )}
 
-          {activeTab === 'announcements' && (
-            <Pengumuman initialOpenAdd={subAction === 'add'} />
+          {activeTab === 'classInfo' && (
+            <ClassIdentityView
+              classInfo={classInfo}
+              onSaveClassInfo={saveClassInfo}
+            />
           )}
 
-          {activeTab === 'reports' && (
-            <Laporan />
+          {activeTab === 'settings' && (
+            <SettingsView
+              classInfo={classInfo}
+              syncQueue={syncQueue}
+              onManualSync={handleManualSync}
+              onResetData={resetAllDataToDefault}
+              isSyncing={isSyncing}
+            />
+          )}
+
+          {activeTab === 'aksaAi' && (
+            <div className="max-w-3xl mx-auto">
+              <AksaAiWidget
+                students={students}
+                onInsertToGradebook={handleInsertToGradebook}
+                onInsertToJournal={handleInsertToJournal}
+              />
+            </div>
           )}
         </main>
       </div>
 
-      <FeedbackModal
-        isOpen={isFeedbackOpen}
-        onClose={() => setIsFeedbackOpen(false)}
+      {/* Aksa AI Modal */}
+      {isAksaModalOpen && (
+        <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <AksaAiWidget
+            students={students}
+            onInsertToGradebook={handleInsertToGradebook}
+            onInsertToJournal={handleInsertToJournal}
+            onClose={() => setIsAksaModalOpen(false)}
+            isModal={true}
+          />
+        </div>
+      )}
+
+      {/* Quick Action Modal */}
+      <QuickActionModal
+        isOpen={isQuickActionOpen}
+        onClose={() => setIsQuickActionOpen(false)}
+        onSelectAction={handleQuickActionSelect}
       />
 
-      <UpgradeModal
-        isOpen={isUpgradeOpen}
-        onClose={() => setIsUpgradeOpen(false)}
+      {/* Onboarding Modal */}
+      <OnboardingModal
+        isOpen={isOnboardingOpen}
+        onClose={() => setIsOnboardingOpen(false)}
+        classInfo={classInfo}
+        onSaveClassInfo={handleSaveClassInfoFromOnboarding}
       />
-
-      <AksaAIFloating />
     </div>
   );
-};
-
-export default function App() {
-  return (
-    <ThemeProvider>
-      <AuthProvider>
-        <MainAppContent />
-      </AuthProvider>
-    </ThemeProvider>
-  );
 }
-

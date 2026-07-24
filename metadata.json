@@ -1,8 +1,6 @@
 {
-  "name": "Remix: SekolahHub Class Basic",
-  "description": "Aplikasi administrasi kelas berbasis web untuk satu guru mengelola satu kelas (Single Teacher Edition).",
+  "name": "SekolahHub Class Basic",
+  "description": "Aplikasi Administrasi Kelas Single Guru - Single Kelas untuk PAUD, TK, dan SD dengan Aksa AI Assistant & Sinkronisasi Google Sheets",
   "requestFramePermissions": [],
-  "majorCapabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ]
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
